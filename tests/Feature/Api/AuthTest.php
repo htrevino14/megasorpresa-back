@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
@@ -9,7 +10,7 @@ it('can authenticate a user and receive a token', function () {
     // Arrange: Crear un usuario
     $user = User::factory()->create([
         'email' => 'test@example.com',
-        'password' => bcrypt('password123'),
+        'password' => Hash::make('password123'),
     ]);
 
     // Act: Intentar login
@@ -31,13 +32,13 @@ it('can authenticate a user and receive a token', function () {
 it('rejects login with invalid credentials', function () {
     // Arrange: Crear un usuario
     User::factory()->create([
-        'email' => 'test@example.com',
-        'password' => bcrypt('password123'),
+        'email' => 'auth-test@example.com',
+        'password' => Hash::make('password123'),
     ]);
 
     // Act: Intentar login con contraseña incorrecta
     $response = $this->postJson('/api/auth/login', [
-        'email' => 'test@example.com',
+        'email' => 'auth-test@example.com',
         'password' => 'wrongpassword',
     ]);
 

@@ -21,7 +21,8 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             required={"email","password"},
      *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="password123")
+     *             @OA\Property(property="password", type="string", format="password", example="password123"),
+     *             @OA\Property(property="device_name", type="string", example="iPhone 13", description="Nombre del dispositivo (opcional)")
      *         )
      *     ),
      *     @OA\Response(
@@ -63,7 +64,9 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         
         // Generar token para clientes móviles
-        $token = $user->createToken('mobile-app')->plainTextToken;
+        // Nota: El nombre del token puede ser personalizado según el tipo de dispositivo
+        $tokenName = $request->input('device_name', 'mobile-app');
+        $token = $user->createToken($tokenName)->plainTextToken;
 
         return response()->json([
             'token' => $token,
