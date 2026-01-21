@@ -38,7 +38,7 @@ class Reminder extends Model
      */
     public function getNotificationDateAttribute(): \Carbon\Carbon
     {
-        return $this->date->subDays($this->notify_days_before);
+        return $this->date->copy()->subDays($this->notify_days_before);
     }
 
     /**
@@ -46,6 +46,7 @@ class Reminder extends Model
      */
     public function shouldNotify(): bool
     {
-        return $this->notification_date->isToday() || $this->notification_date->isPast();
+        $notificationDate = $this->date->copy()->subDays($this->notify_days_before);
+        return $notificationDate->isToday() || $notificationDate->isPast();
     }
 }

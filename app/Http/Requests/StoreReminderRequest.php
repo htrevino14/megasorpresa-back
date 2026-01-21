@@ -15,7 +15,7 @@ class StoreReminderRequest extends FormRequest
     {
         return [
             'event_name' => 'required|string|max:255',
-            'date' => 'required|date|after:today',
+            'date' => 'required|date|after:now',
             'notify_days_before' => 'sometimes|integer|min:1|max:365',
         ];
     }
