@@ -13,7 +13,7 @@ namespace App\Http\Controllers;
  * )
  * 
  * @OA\Server(
- *     url=L5_SWAGGER_CONST_HOST,
+ *     url="/",
  *     description="API Server"
  * )
  * 
@@ -23,6 +23,11 @@ namespace App\Http\Controllers;
  *     scheme="bearer",
  *     bearerFormat="Token",
  *     description="Token de autenticación de Laravel Sanctum para clientes móviles"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Autenticación",
+ *     description="Endpoints de autenticación para clientes móviles y web"
  * )
  */
 abstract class Controller

@@ -121,6 +121,11 @@ return [
             ],
 
             /**
+             * Should we validate the swagger spec?
+             */
+            'validate' => false,
+
+            /**
              * analyser: defaults to \OpenApi\StaticAnalyser .
              *
              * @see \OpenApi\scan

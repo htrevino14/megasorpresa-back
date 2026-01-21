@@ -346,6 +346,27 @@ Cada vez que agregues o modifiques endpoints, actualiza la documentación:
 ./vendor/bin/sail artisan l5-swagger:generate
 ```
 
+> **Nota**: Durante el desarrollo inicial, Swagger puede mostrar warnings sobre `@OA\PathItem()`. Esto es normal hasta que se agreguen más endpoints documentados. La documentación se generará correctamente una vez que haya controladores con anotaciones `@OA\Get`, `@OA\Post`, etc.
+
+### Documentar Endpoints
+
+Usa anotaciones OpenAPI en tus controladores:
+
+```php
+/**
+ * @OA\Get(
+ *     path="/api/products",
+ *     summary="Listar productos",
+ *     tags={"Productos"},
+ *     security={{"sanctum":{}}},
+ *     @OA\Response(response=200, description="Lista de productos")
+ * )
+ */
+public function index() {
+    // ...
+}
+```
+
 ## 🧪 Testing
 
 Este proyecto utiliza **Pest PHP** para testing.
