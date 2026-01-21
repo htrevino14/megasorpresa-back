@@ -10,7 +10,7 @@
 
 ### PHP Version and Type Safety
 - **ALWAYS** use PHP 8.2+ features
-- **ALWAYS** declare strict types at the top of every PHP file:
+- **RECOMMENDED**: Declare strict types at the top of new PHP files for improved type safety:
   ```php
   <?php
   
@@ -18,6 +18,7 @@
   
   namespace App\...;
   ```
+  *Note: Existing files may not have strict types. Add it to new files only to maintain consistency.*
 - **ALWAYS** use type hints for parameters, return types, and properties
 - **ALWAYS** use readonly properties in DTOs for immutability
 - Use named arguments when calling functions with multiple parameters for clarity
@@ -68,8 +69,6 @@
 ```php
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Controllers\Api;
 
 use App\DTOs\OrderDTO;
@@ -114,8 +113,6 @@ class OrderController extends Controller
 **Example**:
 ```php
 <?php
-
-declare(strict_types=1);
 
 namespace App\Services;
 
@@ -163,8 +160,6 @@ class OrderService
 ```php
 <?php
 
-declare(strict_types=1);
-
 namespace App\DTOs;
 
 use Illuminate\Http\Request;
@@ -204,8 +199,6 @@ readonly class OrderDTO
 ```php
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -244,8 +237,6 @@ class StoreOrderRequest extends FormRequest
 **Example**:
 ```php
 <?php
-
-declare(strict_types=1);
 
 namespace App\Models;
 
@@ -288,8 +279,6 @@ class Order extends Model
 **Example**:
 ```php
 <?php
-
-declare(strict_types=1);
 
 namespace App\Http\Resources;
 
