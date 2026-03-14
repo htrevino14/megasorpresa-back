@@ -9,6 +9,7 @@ Backend API para el e-commerce de juguetes **MegaSorpresa**. Este proyecto sirve
 
 ## 📋 Tabla de Contenidos
 
+- [Quick Start con Docker](#-quick-start-con-docker)
 - [Stack Tecnológico](#stack-tecnológico)
 - [Requisitos](#requisitos)
 - [Instalación](#instalación)
@@ -18,6 +19,34 @@ Backend API para el e-commerce de juguetes **MegaSorpresa**. Este proyecto sirve
 - [Documentación API](#documentación-api)
 - [Testing](#testing)
 - [Arquitectura](#arquitectura)
+
+## 🚀 Quick Start con Docker
+
+Levanta el proyecto completo (API + MySQL + Redis) con un solo comando, sin necesidad de instalar PHP, Composer ni ninguna otra dependencia local.
+
+**Requisitos**: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
+```bash
+git clone https://github.com/htrevino14/megasorpresa-back.git
+cd megasorpresa-back
+docker compose up --build
+```
+
+Docker construirá la imagen, iniciará los contenedores y ejecutará las migraciones automáticamente. Una vez finalizado, la API estará disponible en:
+
+- **API**: [http://localhost:8080](http://localhost:8080)
+- **MySQL**: `localhost:3306` (usuario: `megasorpresa`, contraseña: `secret`)
+- **Redis**: `localhost:6379`
+
+> **Primera ejecución**: El proceso tarda unos minutos mientras Docker construye la imagen. Las siguientes ejecuciones son mucho más rápidas.
+
+Para detener los servicios:
+
+```bash
+docker compose down
+```
+
+---
 
 ## 🛠️ Stack Tecnológico
 
@@ -47,7 +76,48 @@ Backend API para el e-commerce de juguetes **MegaSorpresa**. Este proyecto sirve
 
 ## 🚀 Instalación
 
-### Opción 1: Con Laravel Sail (Docker) - Recomendado
+### Opción 1: Docker (Recomendado — un solo comando)
+
+El método más sencillo. No requiere instalar PHP, Composer ni ninguna dependencia local.
+
+1. **Clonar el repositorio**
+
+```bash
+git clone https://github.com/htrevino14/megasorpresa-back.git
+cd megasorpresa-back
+```
+
+2. **Levantar el proyecto**
+
+```bash
+docker compose up --build
+```
+
+Esto construye la imagen, inicia MySQL y Redis, y ejecuta las migraciones automáticamente. La API queda disponible en `http://localhost:8080`.
+
+> Para ejecutar en segundo plano: `docker compose up --build -d`
+
+**Comandos útiles con Docker Compose**:
+
+```bash
+# Ver logs de la aplicación
+docker compose logs -f app
+
+# Ejecutar comandos Artisan dentro del contenedor
+docker compose exec app php artisan migrate
+docker compose exec app php artisan tinker
+
+# Detener todos los servicios
+docker compose down
+
+# Detener y eliminar volúmenes (base de datos)
+docker compose down -v
+
+# Reconstruir la imagen (tras cambios en Dockerfile o dependencias)
+docker compose up --build
+```
+
+### Opción 2: Con Laravel Sail (Docker avanzado)
 
 1. **Clonar el repositorio**
 
@@ -114,7 +184,7 @@ REDIS_PORT=6379
 ./vendor/bin/sail npm run build
 ```
 
-### Opción 2: Instalación Local (sin Docker)
+### Opción 3: Instalación Local (sin Docker)
 
 1. **Clonar el repositorio**
 
@@ -220,10 +290,36 @@ Sanctum ya está instalado y configurado. Para publicar la configuración (opcio
 
 ## 🐳 Uso con Docker/Sail
 
-### Comandos Útiles
+### Docker Compose (un solo comando)
+
+Para el setup rápido con `docker-compose.yml`:
 
 ```bash
-# Iniciar servicios
+# Iniciar servicios (construye la imagen en la primera ejecución)
+docker compose up --build -d
+
+# Ver logs
+docker compose logs -f
+
+# Ejecutar comandos Artisan
+docker compose exec app php artisan migrate
+docker compose exec app php artisan tinker
+
+# Acceder al shell del contenedor
+docker compose exec app sh
+
+# Detener servicios
+docker compose down
+```
+
+### Laravel Sail (Docker avanzado)
+
+Para usar Laravel Sail (requiere instalar dependencias de Composer previamente):
+
+> **Nota**: Sail usa el archivo `compose.yaml`. Para usarlo junto con `docker-compose.yml`, ejecuta: `docker compose -f compose.yaml up -d`
+
+```bash
+# Iniciar servicios con Sail
 ./vendor/bin/sail up -d
 
 # Detener servicios
@@ -255,13 +351,13 @@ Sanctum ya está instalado y configurado. Para publicar la configuración (opcio
 
 ### Servicios Disponibles
 
-Cuando ejecutas `sail up`, los siguientes servicios están disponibles:
-
-- **Aplicación Laravel**: http://localhost
-- **MySQL**: localhost:3306
-- **Redis**: localhost:6379
-- **Mailpit** (email testing): http://localhost:8025
-- **Meilisearch** (búsqueda): http://localhost:7700
+| Servicio | Docker Compose | Laravel Sail |
+|---|---|---|
+| Aplicación Laravel | http://localhost:8080 | http://localhost |
+| MySQL | localhost:3306 | localhost:3306 |
+| Redis | localhost:6379 | localhost:6379 |
+| Mailpit (email testing) | — | http://localhost:8025 |
+| Meilisearch (búsqueda) | — | http://localhost:7700 |
 
 ### Alias de Sail (Opcional)
 
