@@ -5,29 +5,19 @@ cd /var/www/html
 
 echo "🔧 Initializing MegaSorpresa Backend..."
 
-# ---------------------------------------------------------------------------
-# 1. Create .env from .env.example if it doesn't exist
-# ---------------------------------------------------------------------------
-if [ ! -f .env ]; then
+# 1. Asegurar permisos de carpetas críticas (A veces los volúmenes de Docker los cambian)
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
+# 2. Manejo de .env y APP_KEY
+if [ ! -f .env ] && [ -z "$APP_KEY" ]; then
     cp .env.example .env
     echo "✅ Created .env from .env.example"
+    php artisan key:generate --force
 fi
 
-# ---------------------------------------------------------------------------
-# 2. Generate APP_KEY if not already set (via env var or .env file)
-# ---------------------------------------------------------------------------
-if [ -z "${APP_KEY}" ]; then
-    if ! grep -q "^APP_KEY=.\+" .env 2>/dev/null; then
-        php artisan key:generate --force
-        echo "✅ Generated APP_KEY"
-    fi
-fi
-
-# ---------------------------------------------------------------------------
-# 3. Wait for the MySQL database to be ready
-# ---------------------------------------------------------------------------
+# 3. Esperar a la base de datos (Tu lógica de PDO es excelente, la mantenemos)
 echo "⏳ Waiting for database connection..."
-
 RETRIES=30
 until php -r "
     \$host = getenv('DB_HOST') ?: 'mysql';
@@ -43,24 +33,29 @@ until php -r "
     }
 " 2>/dev/null; do
     if [ "$RETRIES" -le 0 ]; then
-        echo "❌ ERROR: Could not connect to database after multiple retries."
+        echo "❌ ERROR: Could not connect to database."
         exit 1
     fi
-    echo "   Database not ready, retrying in 2s... (${RETRIES} attempts left)"
+    echo "   Database not ready, retrying... (${RETRIES} left)"
     sleep 2
     RETRIES=$((RETRIES - 1))
 done
-
 echo "✅ Database connection established"
 
-# ---------------------------------------------------------------------------
-# 4. Run database migrations
-# ---------------------------------------------------------------------------
+# 4. Optimización de Laravel (Añadido)
+echo "🧹 Optimizing Laravel..."
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+# En producción, descomenta las siguientes líneas:
+# php artisan config:cache
+# php artisan route:cache
+
+# 5. Ejecutar migraciones
+# --force es obligatorio en producción
 php artisan migrate --force
 echo "✅ Migrations completed"
 
-# ---------------------------------------------------------------------------
-# 5. Start PHP-FPM + Nginx via Supervisor
-# ---------------------------------------------------------------------------
-echo "🚀 Starting application on port 80..."
+# 6. Iniciar Supervisor (PHP-FPM + Nginx + Workers de Redis)
+echo "🚀 Starting application via Supervisor..."
 exec supervisord -c /etc/supervisord.conf

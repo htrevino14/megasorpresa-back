@@ -1,6 +1,6 @@
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies
+# 1. Dependencias del sistema (usando apk para Alpine)
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -12,9 +12,17 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
-    oniguruma-dev
+    oniguruma-dev \
+    bash
 
-# Install PHP extensions
+# 2. Herramientas de compilación para PECL (Se instalan temporalmente para ahorrar espacio)
+# $PHPIZE_DEPS incluye autoconf, dpkg, file, g++, gcc, libc-dev, make, pkgconf, etc.
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
+
+# 3. Instalación de extensiones de PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo \
@@ -26,16 +34,12 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         gd \
         zip
 
-# Install Redis PHP extension
-RUN pecl install redis \
-    && docker-php-ext-enable redis
-
-# Install Composer
+# 4. Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Install PHP dependencies (cached layer — only re-runs when composer files change)
+# 5. Instalación de dependencias de Laravel (Optimizado para caché)
 COPY composer.json composer.lock ./
 RUN composer install \
     --prefer-dist \
@@ -43,19 +47,17 @@ RUN composer install \
     --no-scripts \
     --no-autoloader
 
-# Copy application source code
+# 6. Código fuente y Autoloader
 COPY . .
-
-# Generate optimized autoloader
 RUN composer dump-autoload --optimize
 
-# Create supervisor log directory and set permissions
+# 7. Permisos y Logs
 RUN mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Copy Docker configuration files
+# 8. Archivos de configuración
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
