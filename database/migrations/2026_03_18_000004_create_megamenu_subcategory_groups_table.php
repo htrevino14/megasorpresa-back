@@ -24,7 +24,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->index(['megamenu_category_id', 'sort_order']);
+            $table->index(['megamenu_category_id', 'sort_order'], 'mm_subcategory_groups_cat_id_sort_order_idx');
         });
     }
 
