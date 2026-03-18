@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\CouponController;
+use App\Http\Controllers\Api\LandingController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ Route::prefix('catalog')->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/featured', [ProductController::class, 'featured']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
-    
+
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
 });
@@ -39,31 +39,45 @@ Route::prefix('catalog')->group(function () {
 Route::get('/reviews', [ReviewController::class, 'index']);
 Route::get('/reviews/average', [ReviewController::class, 'averageRating']);
 
+// Landing page routes (public, no auth required)
+Route::prefix('landing')->group(function () {
+    Route::get('/announcement-bar', [LandingController::class, 'announcementBar']);
+    Route::get('/hero-slides', [LandingController::class, 'heroSlides']);
+    Route::get('/megamenu', [LandingController::class, 'megamenu']);
+    Route::get('/category-carousel', [LandingController::class, 'categoryCarousel']);
+    Route::get('/age-groups', [LandingController::class, 'ageGroups']);
+    Route::get('/footer', [LandingController::class, 'footer']);
+    Route::get('/newsletter-categories', [LandingController::class, 'newsletterCategories']);
+});
+
 // Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth management
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    
+
     // User profile management
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    
+
     // User addresses
     Route::get('/user/addresses', [UserController::class, 'addresses']);
     Route::post('/user/addresses', [UserController::class, 'storeAddress']);
-    
+
     // User reminders
     Route::get('/user/reminders', [UserController::class, 'reminders']);
     Route::post('/user/reminders', [UserController::class, 'storeReminder']);
-    
+
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
-    
+
     // Reviews (creation requires auth)
     Route::post('/reviews', [ReviewController::class, 'store']);
-    
+
     // Coupons
     Route::post('/coupons/validate', [CouponController::class, 'validate']);
+
+    // Newsletter subscription (requires auth)
+    Route::post('/landing/newsletter/subscribe', [LandingController::class, 'subscribeNewsletter']);
 });
