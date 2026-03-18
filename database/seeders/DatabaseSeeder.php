@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +16,44 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            // Reference / static data (no dependencies)
+            RegionSeeder::class,
+            OrderStatusSeeder::class,
+            PaymentMethodSeeder::class,
+            SocialLinkSeeder::class,
+            FooterSeeder::class,
+            AnnouncementBarSeeder::class,
+            HeroSlideSeeder::class,
+            NewsletterSeeder::class,
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            // Location hierarchy (states → cities → delivery slots)
+            StateSeeder::class,
+            CitySeeder::class,
+            DeliverySlotSeeder::class,
+
+            // Product catalog (categories → products → images + availability)
+            CategorySeeder::class,
+            ProductAddonSeeder::class,
+            ProductSeeder::class,
+
+            // Megamenu & UI components (depend on categories)
+            MegamenuSeeder::class,
+            CategoryCarouselItemSeeder::class,
+            AgeGroupSeeder::class,
+
+            // Users (depend on cities)
+            UserSeeder::class,
+
+            // Promotions
+            BannerSeeder::class,
+            CouponSeeder::class,
+
+            // Orders (depend on users, products, order statuses, delivery slots)
+            OrderSeeder::class,
+
+            // Reviews (depend on products and users)
+            ReviewSeeder::class,
         ]);
     }
 }
