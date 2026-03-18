@@ -56,6 +56,29 @@ php artisan view:clear
 php artisan migrate --force
 echo "✅ Migrations completed"
 
-# 6. Iniciar Supervisor (PHP-FPM + Nginx + Workers de Redis)
+# 6. Ejecutar seeders solo si la base de datos está vacía (primera inicialización)
+SEEDED=$(php -r "
+    \$host = getenv('DB_HOST') ?: 'mysql';
+    \$port = getenv('DB_PORT') ?: '3306';
+    \$db   = getenv('DB_DATABASE') ?: 'megasorpresa';
+    \$user = getenv('DB_USERNAME') ?: 'megasorpresa';
+    \$pass = getenv('DB_PASSWORD') ?: 'secret';
+    try {
+        \$pdo = new PDO(\"mysql:host=\$host;port=\$port;dbname=\$db\", \$user, \$pass);
+        echo \$pdo->query('SELECT COUNT(*) FROM order_statuses')->fetchColumn();
+    } catch (Exception \$e) {
+        echo 0;
+    }
+" 2>/dev/null || echo 0)
+
+if [ "${SEEDED:-0}" -gt 0 ] 2>/dev/null; then
+    echo "⏭️ Database already seeded, skipping seeders"
+else
+    echo "🌱 Running seeders for the first time..."
+    php artisan db:seed --force
+    echo "✅ Seeders completed"
+fi
+
+# 7. Iniciar Supervisor (PHP-FPM + Nginx + Workers de Redis)
 echo "🚀 Starting application via Supervisor..."
 exec supervisord -c /etc/supervisord.conf
