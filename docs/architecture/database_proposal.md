@@ -308,12 +308,14 @@ $table->index(['is_active', 'sort_order']);
 | `slug` | `string` | unique, NOT NULL | Slug para URL de filtrado (ej. "0-18-meses") |
 | `bg_color` | `string(7)` | NOT NULL | Color de fondo del botón en hex |
 | `text_color` | `string(7)` | default `#FFFFFF` | Color del texto en hex |
+| `category_id_destination` | `foreignId` | nullable, FK → `categories.id` ON DELETE SET NULL | Categoría del catálogo de productos a la que redirige este grupo de edad |
 | `sort_order` | `unsignedSmallInteger` | default `0` | Orden de aparición |
 | `is_active` | `boolean` | default `true` | Control de visibilidad |
 | `created_at` | `timestamp` | auto | — |
 | `updated_at` | `timestamp` | auto | — |
 
-**Relaciones:** Ninguna (tabla independiente).
+**Relaciones:**
+- N:1 con `categories` vía `category_id_destination` (categoría destino del catálogo)
 
 **Índices:**
 ```php
@@ -505,6 +507,7 @@ $table->unique('code');
 | `categories` | 1:N | `megamenu_categories` | vía `category_id_destination` — categoría destino para la entrada de menú |
 | `categories` | 1:N | `megamenu_subcategory_groups` | vía `category_id_destination` — categoría destino para el grupo |
 | `categories` | 1:N | `megamenu_subcategory_items` | vía `category_id_destination` — categoría destino para el ítem |
+| `categories` | 1:N | `age_groups` | vía `category_id_destination` — categoría destino para el grupo de edad |
 | `categories` | 1:N | `category_carousel_items` | Una categoría de producto puede estar en el carrusel |
 | `footer_sections` | 1:N | `footer_links` | Una sección del footer tiene muchos enlaces |
 | `users` | N:N | `newsletter_categories` | vía `newsletter_subscriptions` |
