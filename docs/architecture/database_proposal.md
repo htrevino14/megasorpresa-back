@@ -161,6 +161,7 @@ $table->index(['starts_at', 'ends_at']);
 | `name` | `string` | NOT NULL | Nombre visible (ej. "Juguetes") |
 | `slug` | `string` | unique, NOT NULL | Slug para URL (ej. "juguetes") |
 | `icon` | `string` | nullable | Nombre de icono o clase CSS |
+| `category_id_destination` | `foreignId` | nullable, FK → `categories.id` ON DELETE SET NULL | Categoría del catálogo de productos a la que redirige esta entrada del menú |
 | `sort_order` | `unsignedSmallInteger` | default `0` | Orden de aparición en el menú |
 | `is_active` | `boolean` | default `true` | Control de visibilidad |
 | `created_at` | `timestamp` | auto | — |
@@ -169,6 +170,7 @@ $table->index(['starts_at', 'ends_at']);
 **Relaciones:**
 - 1:N con `megamenu_subcategory_groups` (una categoría tiene varios grupos)
 - 1:1 con `megamenu_promo_panels` (una categoría tiene un panel promocional)
+- N:1 con `categories` vía `category_id_destination` (categoría destino del catálogo)
 
 **Índices:**
 ```php
@@ -188,6 +190,7 @@ $table->index(['is_active', 'sort_order']);
 | `id` | `bigIncrements` | PK | Identificador |
 | `megamenu_category_id` | `foreignId` | FK → `megamenu_categories.id` ON DELETE CASCADE | Categoría padre |
 | `title` | `string` | NOT NULL | Título del grupo (ej. "Acción") |
+| `category_id_destination` | `foreignId` | nullable, FK → `categories.id` ON DELETE SET NULL | Categoría del catálogo de productos a la que redirige este grupo |
 | `sort_order` | `unsignedSmallInteger` | default `0` | Orden dentro de la categoría |
 | `created_at` | `timestamp` | auto | — |
 | `updated_at` | `timestamp` | auto | — |
@@ -195,6 +198,7 @@ $table->index(['is_active', 'sort_order']);
 **Relaciones:**
 - N:1 con `megamenu_categories`
 - 1:N con `megamenu_subcategory_items`
+- N:1 con `categories` vía `category_id_destination` (categoría destino del catálogo)
 
 **Índices:**
 ```php
@@ -214,13 +218,14 @@ $table->index(['megamenu_category_id', 'sort_order']);
 | `id` | `bigIncrements` | PK | Identificador |
 | `megamenu_subcategory_group_id` | `foreignId` | FK → `megamenu_subcategory_groups.id` ON DELETE CASCADE | Grupo padre |
 | `label` | `string` | NOT NULL | Texto visible del ítem |
-| `url` | `string` | nullable | URL de destino |
+| `category_id_destination` | `foreignId` | nullable, FK → `categories.id` ON DELETE SET NULL | Categoría del catálogo de productos a la que redirige este ítem |
 | `sort_order` | `unsignedSmallInteger` | default `0` | Orden dentro del grupo |
 | `created_at` | `timestamp` | auto | — |
 | `updated_at` | `timestamp` | auto | — |
 
 **Relaciones:**
 - N:1 con `megamenu_subcategory_groups`
+- N:1 con `categories` vía `category_id_destination` (categoría destino del catálogo)
 
 **Índices:**
 ```php
@@ -497,6 +502,9 @@ $table->unique('code');
 | `megamenu_categories` | 1:N | `megamenu_subcategory_groups` | Una categoría tiene muchos grupos de subcategorías |
 | `megamenu_subcategory_groups` | 1:N | `megamenu_subcategory_items` | Un grupo tiene muchos ítems |
 | `megamenu_categories` | 1:1 | `megamenu_promo_panels` | Cada categoría tiene un panel promo |
+| `categories` | 1:N | `megamenu_categories` | vía `category_id_destination` — categoría destino para la entrada de menú |
+| `categories` | 1:N | `megamenu_subcategory_groups` | vía `category_id_destination` — categoría destino para el grupo |
+| `categories` | 1:N | `megamenu_subcategory_items` | vía `category_id_destination` — categoría destino para el ítem |
 | `categories` | 1:N | `category_carousel_items` | Una categoría de producto puede estar en el carrusel |
 | `footer_sections` | 1:N | `footer_links` | Una sección del footer tiene muchos enlaces |
 | `users` | N:N | `newsletter_categories` | vía `newsletter_subscriptions` |
