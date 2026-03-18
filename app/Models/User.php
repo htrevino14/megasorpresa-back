@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -83,5 +84,14 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get the newsletter categories this user is subscribed to.
+     */
+    public function newsletterCategories(): BelongsToMany
+    {
+        return $this->belongsToMany(NewsletterCategory::class, 'newsletter_subscriptions')
+            ->withPivot('subscribed_at');
     }
 }
