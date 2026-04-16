@@ -13,10 +13,10 @@ class AnnouncementBarSeeder extends Seeder
     {
         $bars = [
             [
-                'message' => '🚚 ¡Envío gratis en compras mayores a $500! Aplica en ciudades seleccionadas.',
+                'message' => '🚚 ¡Envíalo de hoy para hoy',
                 'link_url' => '/catalog',
                 'link_label' => 'Ver productos',
-                'bg_color' => '#0072E3',
+                'bg_color' => '#000000',
                 'text_color' => '#FFFFFF',
                 'is_active' => true,
                 'starts_at' => null,
