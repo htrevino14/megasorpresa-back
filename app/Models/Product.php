@@ -107,4 +107,12 @@ class Product extends Model
             $q->where('city_id', $cityId);
         });
     }
+
+    /**
+     * Get the cart items for the product.
+     */
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }

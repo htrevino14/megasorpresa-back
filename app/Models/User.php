@@ -94,4 +94,12 @@ class User extends Authenticatable
         return $this->belongsToMany(NewsletterCategory::class, 'newsletter_subscriptions')
             ->withPivot('subscribed_at');
     }
+
+    /**
+     * Get the carts for the user.
+     */
+    public function carts(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
 }
