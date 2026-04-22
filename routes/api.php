@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\LandingController;
@@ -49,6 +50,17 @@ Route::prefix('landing')->group(function () {
     Route::get('/footer', [LandingController::class, 'footer']);
     Route::get('/newsletter-categories', [LandingController::class, 'newsletterCategories']);
 });
+
+// Cart routes (accessible for both guest and authenticated users)
+Route::prefix('cart')->group(function () {
+    Route::get('/', [CartController::class, 'index']);
+    Route::post('/add', [CartController::class, 'add']);
+    Route::patch('/update-quantity', [CartController::class, 'updateQuantity']);
+    Route::delete('/remove/{productId}', [CartController::class, 'remove']);
+    Route::post('/details', [CartController::class, 'updateDetails']);
+    Route::delete('/clear', [CartController::class, 'clear']);
+});
+
 
 // Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {

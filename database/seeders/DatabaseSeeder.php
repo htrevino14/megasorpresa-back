@@ -52,6 +52,9 @@ class DatabaseSeeder extends Seeder
             // Orders (depend on users, products, order statuses, delivery slots)
             OrderSeeder::class,
 
+            // Carts (depend on users, products, cities)
+            CartSeeder::class,
+
             // Reviews (depend on products and users)
             ReviewSeeder::class,
         ]);

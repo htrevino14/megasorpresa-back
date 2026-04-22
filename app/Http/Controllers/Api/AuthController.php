@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -10,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private CartService $cartService
+    ) {}
+
     /**
      * @OA\Post(
      *     path="/api/auth/login",
@@ -62,7 +67,11 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        
+
+        // Merge guest cart with user cart on login
+        $sessionId = $request->session()->getId();
+        $this->cartService->mergeGuestCart($sessionId, $user->id);
+
         // Generar token para clientes móviles
         // Nota: El nombre del token puede ser personalizado según el tipo de dispositivo
         $tokenName = $request->input('device_name', 'mobile-app');
