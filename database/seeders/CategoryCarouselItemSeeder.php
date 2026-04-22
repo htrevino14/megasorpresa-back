@@ -16,7 +16,7 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Muñecas',
                 'slug' => 'munecas',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Munecas',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/trampolin.png',
                 'bg_color' => '#FFE0E6',
                 'sort_order' => 1,
                 'category_slug' => 'munecas',
@@ -24,7 +24,7 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Carritos',
                 'slug' => 'carritos',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Carritos',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/pokemon.png',
                 'bg_color' => '#E3F2FD',
                 'sort_order' => 2,
                 'category_slug' => 'carritos-vehiculos',
@@ -32,7 +32,7 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Juegos de Mesa',
                 'slug' => 'juegos-mesa',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Juegos+Mesa',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/lego.png',
                 'bg_color' => '#FFF8E1',
                 'sort_order' => 3,
                 'category_slug' => 'juegos-de-mesa',
@@ -40,7 +40,7 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Arte',
                 'slug' => 'arte',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Arte',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/futbol.png',
                 'bg_color' => '#F3E5F5',
                 'sort_order' => 4,
                 'category_slug' => 'arte-manualidades',
@@ -48,7 +48,7 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Exterior',
                 'slug' => 'exterior',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Exterior',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/casa.png',
                 'bg_color' => '#E8F5E9',
                 'sort_order' => 5,
                 'category_slug' => 'juguetes-exterior',
@@ -56,26 +56,10 @@ class CategoryCarouselItemSeeder extends Seeder
             [
                 'name' => 'Bebés',
                 'slug' => 'bebes',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Bebes',
+                'image_url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/carrito.png',
                 'bg_color' => '#FFF3E0',
                 'sort_order' => 6,
                 'category_slug' => 'bebes-ninos-pequenos',
-            ],
-            [
-                'name' => 'Tecnología',
-                'slug' => 'tecnologia',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Tecnologia',
-                'bg_color' => '#E8EAF6',
-                'sort_order' => 7,
-                'category_slug' => 'electronica-tecnologia',
-            ],
-            [
-                'name' => 'Educativos',
-                'slug' => 'educativos',
-                'image_url' => 'https://via.placeholder.com/200x200?text=Educativos',
-                'bg_color' => '#E0F7FA',
-                'sort_order' => 8,
-                'category_slug' => 'juguetes-educativos',
             ],
         ];
 
