@@ -160,7 +160,8 @@ class ProductSeeder extends Seeder
             if ($product->images()->count() === 0) {
                 ProductImage::create([
                     'product_id' => $product->id,
-                    'url' => 'https://via.placeholder.com/800x600?text=' . urlencode($product->name),
+                    //'url' => 'https://via.placeholder.com/800x600?text=' . urlencode($product->name),
+                    'url' => 'https://storage.googleapis.com/megasorpresa_storefront_bucket/carrito.png',
                     'is_primary' => true,
                     'order' => 0,
                 ]);
