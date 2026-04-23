@@ -25,12 +25,6 @@ use App\Models\SocialLink;
 use App\Services\NewsletterService;
 use Illuminate\Http\JsonResponse;
 
-/**
- * @OA\Tag(
- *     name="Landing Page",
- *     description="Endpoints públicos que alimentan los componentes de la landing page (TheHeader, HeroSection, CategoryCarousel, AgeSelector, TheFooter)."
- * )
- */
 class LandingController extends Controller
 {
     public function __construct(

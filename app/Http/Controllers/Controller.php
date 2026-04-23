@@ -55,6 +55,57 @@ namespace App\Http\Controllers;
  *     description="Endpoints para validación de cupones de descuento"
  * )
  * 
+ * @OA\Tag(
+ *     name="Carrito",
+ *     description="Endpoints para gestión del carrito de compras"
+ * )
+ * 
+ * @OA\Tag(
+ *     name="Landing Page",
+ *     description="Endpoints públicos para los componentes de la landing page"
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="CartItem",
+ *     type="object",
+ *     title="CartItem",
+ *     description="Item dentro del carrito de compras",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="product", ref="#/components/schemas/Product"),
+ *     @OA\Property(property="quantity", type="integer", example=2),
+ *     @OA\Property(property="price_at_addition", type="number", format="float", example=29.99),
+ *     @OA\Property(property="subtotal", type="number", format="float", example=59.98),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
+ * @OA\Schema(
+ *     schema="Cart",
+ *     type="object",
+ *     title="Cart",
+ *     description="Carrito de compras",
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="session_id", type="string", example="abc123"),
+ *     @OA\Property(property="shipping_zip_code", type="string", nullable=true, example="12345"),
+ *     @OA\Property(
+ *         property="shipping_city",
+ *         type="object",
+ *         nullable=true,
+ *         @OA\Property(property="id", type="integer", example=1),
+ *         @OA\Property(property="name", type="string", example="Ciudad de México")
+ *     ),
+ *     @OA\Property(property="scheduled_delivery_date", type="string", format="date", nullable=true, example="2026-05-15"),
+ *     @OA\Property(
+ *         property="items",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/CartItem")
+ *     ),
+ *     @OA\Property(property="subtotal", type="number", format="float", example=59.98),
+ *     @OA\Property(property="total_items", type="integer", example=2),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ * 
  * @OA\Schema(
  *     schema="Product",
  *     type="object",
