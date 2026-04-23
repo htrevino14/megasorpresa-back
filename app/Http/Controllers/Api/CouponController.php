@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ValidateCouponRequest;
 use App\Services\CouponService;
+use OpenApi\Annotations as OA;
 
 class CouponController extends Controller
 {

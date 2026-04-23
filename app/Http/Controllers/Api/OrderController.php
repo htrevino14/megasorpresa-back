@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Services\OrderService;
+use OpenApi\Annotations as OA;
 
 class OrderController extends Controller
 {

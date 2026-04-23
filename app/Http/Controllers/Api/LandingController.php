@@ -24,6 +24,7 @@ use App\Models\PaymentMethod;
 use App\Models\SocialLink;
 use App\Services\NewsletterService;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Annotations as OA;
 
 class LandingController extends Controller
 {

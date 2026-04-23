@@ -14,6 +14,7 @@ use App\Http\Resources\AddressResource;
 use App\Http\Resources\ReminderResource;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
+use OpenApi\Annotations as OA;
 
 class UserController extends Controller
 {
