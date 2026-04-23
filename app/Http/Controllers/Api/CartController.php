@@ -15,6 +15,8 @@ use OpenApi\Annotations as OA;
 
 class CartController extends Controller
 {
+    private const CART_TOKEN_HEADER = 'X-Cart-Token';
+
     public function __construct(
         private CartService $cartService
     ) {}
@@ -25,6 +27,13 @@ class CartController extends Controller
      *     summary="Obtener el carrito actual",
      *     description="Retorna el carrito del usuario autenticado o de la sesión actual (invitado).",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Carrito obtenido exitosamente",
@@ -37,12 +46,14 @@ class CartController extends Controller
      */
     public function index(Request $request)
     {
-        $sessionId = $request->session()->getId();
+        $cartToken = $this->resolveCartToken($request);
         $userId = $request->user()?->id;
 
-        $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+        $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
 
-        return new CartResource($cart);
+        return response()
+            ->json(['data' => new CartResource($cart)])
+            ->header(self::CART_TOKEN_HEADER, $cart->session_id);
     }
 
     /**
@@ -51,6 +62,13 @@ class CartController extends Controller
      *     summary="Agregar producto al carrito",
      *     description="Agrega un producto al carrito. Si el producto ya existe, incrementa la cantidad.",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -82,10 +100,10 @@ class CartController extends Controller
     public function add(AddToCartRequest $request)
     {
         try {
-            $sessionId = $request->session()->getId();
+            $cartToken = $this->resolveCartToken($request);
             $userId = $request->user()?->id;
 
-            $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+            $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
             $cartItemDTO = CartItemDTO::fromRequest($request);
 
             $this->cartService->addItem($cart, $cartItemDTO);
@@ -95,7 +113,7 @@ class CartController extends Controller
             return response()->json([
                 'message' => 'Product added to cart successfully',
                 'data' => new CartResource($cart),
-            ]);
+            ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to add product to cart',
@@ -110,6 +128,13 @@ class CartController extends Controller
      *     summary="Actualizar cantidad de un item del carrito",
      *     description="Modifica la cantidad de un producto en el carrito.",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -149,10 +174,10 @@ class CartController extends Controller
     public function updateQuantity(UpdateCartQuantityRequest $request)
     {
         try {
-            $sessionId = $request->session()->getId();
+            $cartToken = $this->resolveCartToken($request);
             $userId = $request->user()?->id;
 
-            $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+            $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
 
             $this->cartService->updateItemQuantity(
                 $cart,
@@ -165,7 +190,7 @@ class CartController extends Controller
             return response()->json([
                 'message' => 'Cart item quantity updated successfully',
                 'data' => new CartResource($cart),
-            ]);
+            ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update cart item quantity',
@@ -180,6 +205,13 @@ class CartController extends Controller
      *     summary="Eliminar producto del carrito",
      *     description="Remueve un producto del carrito completamente.",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\Parameter(
      *         name="productId",
      *         in="path",
@@ -200,10 +232,10 @@ class CartController extends Controller
      */
     public function remove(Request $request, int $productId)
     {
-        $sessionId = $request->session()->getId();
+        $cartToken = $this->resolveCartToken($request);
         $userId = $request->user()?->id;
 
-        $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+        $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
 
         $this->cartService->removeItem($cart, $productId);
 
@@ -212,7 +244,7 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Product removed from cart successfully',
             'data' => new CartResource($cart),
-        ]);
+        ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
     }
 
     /**
@@ -221,6 +253,13 @@ class CartController extends Controller
      *     summary="Actualizar información de envío del carrito",
      *     description="Actualiza el código postal, ciudad y fecha programada de entrega del carrito.",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\RequestBody(
      *         required=false,
      *         @OA\JsonContent(
@@ -252,10 +291,10 @@ class CartController extends Controller
     public function updateDetails(UpdateCartDetailsRequest $request)
     {
         try {
-            $sessionId = $request->session()->getId();
+            $cartToken = $this->resolveCartToken($request);
             $userId = $request->user()?->id;
 
-            $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+            $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
             $cartDTO = CartDTO::fromRequest($request);
 
             $cart = $this->cartService->updateDeliveryDetails($cart, $cartDTO);
@@ -263,7 +302,7 @@ class CartController extends Controller
             return response()->json([
                 'message' => 'Cart details updated successfully',
                 'data' => new CartResource($cart),
-            ]);
+            ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update cart details',
@@ -278,6 +317,13 @@ class CartController extends Controller
      *     summary="Vaciar el carrito",
      *     description="Elimina todos los items del carrito.",
      *     tags={"Carrito"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito para invitados. Si no se envía, el backend genera uno nuevo y lo retorna en la respuesta.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Carrito vaciado exitosamente",
@@ -291,10 +337,10 @@ class CartController extends Controller
      */
     public function clear(Request $request)
     {
-        $sessionId = $request->session()->getId();
+        $cartToken = $this->resolveCartToken($request);
         $userId = $request->user()?->id;
 
-        $cart = $this->cartService->getOrCreateCart($sessionId, $userId);
+        $cart = $this->cartService->getOrCreateCart($cartToken, $userId);
 
         $this->cartService->clearCart($cart);
 
@@ -303,6 +349,19 @@ class CartController extends Controller
         return response()->json([
             'message' => 'Cart cleared successfully',
             'data' => new CartResource($cart),
-        ]);
+        ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
+    }
+
+    private function resolveCartToken(Request $request): ?string
+    {
+        $token = $request->header(self::CART_TOKEN_HEADER);
+
+        if (!is_string($token)) {
+            return null;
+        }
+
+        $trimmedToken = trim($token);
+
+        return $trimmedToken !== '' ? $trimmedToken : null;
     }
 }

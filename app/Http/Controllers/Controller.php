@@ -87,6 +87,7 @@ use OpenApi\Annotations as OA;
  *     title="Cart",
  *     description="Carrito de compras",
  *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="cart_token", type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890", description="Token del carrito para clientes invitados"),
  *     @OA\Property(property="session_id", type="string", example="abc123"),
  *     @OA\Property(property="shipping_zip_code", type="string", nullable=true, example="12345"),
  *     @OA\Property(

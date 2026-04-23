@@ -12,6 +12,8 @@ use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
 {
+    private const CART_TOKEN_HEADER = 'X-Cart-Token';
+
     public function __construct(
         private CartService $cartService
     ) {}
@@ -20,8 +22,15 @@ class AuthController extends Controller
      * @OA\Post(
      *     path="/api/auth/login",
      *     summary="Login de usuario",
-     *     description="Autenticación de usuarios para clientes móviles (Android/iOS). Retorna un Bearer Token.",
+     *     description="Autenticación de usuarios para clientes móviles (Android/iOS). Retorna un Bearer Token y el token de carrito unificado.",
      *     tags={"Autenticación"},
+     *     @OA\Parameter(
+     *         name="X-Cart-Token",
+     *         in="header",
+     *         required=false,
+     *         description="Token de carrito invitado para fusionar el carrito guest con el carrito del usuario autenticado.",
+     *         @OA\Schema(type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890")
+     *     ),
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -36,6 +45,7 @@ class AuthController extends Controller
      *         description="Login exitoso",
      *         @OA\JsonContent(
      *             @OA\Property(property="token", type="string", example="1|abcdef123456..."),
+     *             @OA\Property(property="cart_token", type="string", example="76ced5e9-18d4-4567-b6ca-9b5d4c9d1890"),
      *             @OA\Property(
      *                 property="user",
      *                 type="object",
@@ -70,8 +80,11 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         // Merge guest cart with user cart on login
-        $sessionId = $request->session()->getId();
-        $this->cartService->mergeGuestCart($sessionId, $user->id);
+        $guestCartToken = $request->header(self::CART_TOKEN_HEADER);
+        $cart = $this->cartService->mergeGuestCart(
+            is_string($guestCartToken) ? trim($guestCartToken) : null,
+            $user->id
+        );
 
         // Generar token para clientes móviles
         // Nota: El nombre del token puede ser personalizado según el tipo de dispositivo
@@ -84,8 +97,9 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-            ]
-        ]);
+            ],
+            'cart_token' => $cart->session_id,
+        ])->header(self::CART_TOKEN_HEADER, $cart->session_id);
     }
 
     /**

@@ -46,8 +46,8 @@ REDIS_HOST=your-redis-host
 
 ### 3. Generate API Documentation
 ```bash
-# Generate Swagger documentation
-php artisan l5-swagger:generate
+# Generate Swagger documentation safely
+./scripts/generate-openapi-safe.sh
 
 # Access documentation at: /api/documentation
 ```

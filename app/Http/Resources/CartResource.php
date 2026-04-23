@@ -11,6 +11,7 @@ class CartResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'cart_token' => $this->session_id,
             'session_id' => $this->session_id,
             'shipping_zip_code' => $this->shipping_zip_code,
             'shipping_city' => $this->when(

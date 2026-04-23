@@ -21,10 +21,10 @@ return [
     'allowed_methods' => ['*'],
 
     // Opción 1: Usar la variable de entorno (Recomendado)
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    //'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
 
     // Opción 2: Permitir todo (Solo para desarrollo local rápido)
-    // 'allowed_origins' => ['*'],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 

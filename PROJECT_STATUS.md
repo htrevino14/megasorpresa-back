@@ -282,7 +282,7 @@ Coupons:
 1. Run migrations: `php artisan migrate`
 2. Create seeders for states, cities, order statuses, categories
 3. Write feature tests
-4. Generate Swagger docs: `php artisan l5-swagger:generate`
+4. Generate Swagger docs: `./scripts/generate-openapi-safe.sh`
 
 ### By QA:
 1. Test all API endpoints
