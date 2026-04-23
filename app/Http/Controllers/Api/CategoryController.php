@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
 use App\Services\CatalogService;
 use Illuminate\Http\Request;
+use OpenApi\Annotations as OA;
 
 class CategoryController extends Controller
 {

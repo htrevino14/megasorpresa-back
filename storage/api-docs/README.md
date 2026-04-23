@@ -36,13 +36,15 @@ http://your-domain/api/documentation
 After making changes to controller annotations, regenerate the documentation:
 
 ```bash
-php artisan l5-swagger:generate
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format json app > storage/api-docs/api-docs.json
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format yaml app > storage/api-docs/api-docs.yaml
+cp storage/api-docs/api-docs.yaml storage/api-docs/api-spec.yaml
 ```
 
 Or use the custom command:
 
 ```bash
-php artisan openapi:generate
+./vendor/bin/sail artisan openapi:generate
 ```
 
 ## API Overview

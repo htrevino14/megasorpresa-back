@@ -187,6 +187,353 @@
                 ]
             }
         },
+        "/api/cart": {
+            "get": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Obtener el carrito actual",
+                "description": "Retorna el carrito del usuario autenticado o de la sesión actual (invitado).",
+                "operationId": "7fdb9b40bd4ad2baf12aa15164eab788",
+                "responses": {
+                    "200": {
+                        "description": "Carrito obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/add": {
+            "post": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Agregar producto al carrito",
+                "description": "Agrega un producto al carrito. Si el producto ya existe, incrementa la cantidad.",
+                "operationId": "e940193f73a57895e17830b67c48f89c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Producto agregado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Product added to cart successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación o stock insuficiente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to add product to cart"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Insufficient stock for product"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/update-quantity": {
+            "patch": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Actualizar cantidad de un item del carrito",
+                "description": "Modifica la cantidad de un producto en el carrito.",
+                "operationId": "76323813ed9d18249c39ac7e76d729df",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "product_id",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "quantity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cantidad actualizada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cart item quantity updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Producto no encontrado en el carrito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Product not found in cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación o stock insuficiente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to update cart item quantity"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Insufficient stock"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/remove/{productId}": {
+            "delete": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Eliminar producto del carrito",
+                "description": "Remueve un producto del carrito completamente.",
+                "operationId": "44a0e59980c9b61b8f11b0cec3589a34",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "description": "ID del producto a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Producto eliminado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Product removed from cart successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/details": {
+            "post": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Actualizar información de envío del carrito",
+                "description": "Actualiza el código postal, ciudad y fecha programada de entrega del carrito.",
+                "operationId": "3a1efa573bd57700f027ae6c9dd1d7a3",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "shipping_zip_code": {
+                                        "type": "string",
+                                        "maxLength": 10,
+                                        "example": "12345"
+                                    },
+                                    "shipping_city_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "scheduled_delivery_date": {
+                                        "description": "Fecha programada de entrega (debe ser posterior a hoy)",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-05-15"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Detalles actualizados exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cart details updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to update cart details"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Delivery date must be in the future"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cart/clear": {
+            "delete": {
+                "tags": [
+                    "Carrito"
+                ],
+                "summary": "Vaciar el carrito",
+                "description": "Elimina todos los items del carrito.",
+                "operationId": "bd6015ca61a67dac7c1ff3bdd096bfe3",
+                "responses": {
+                    "200": {
+                        "description": "Carrito vaciado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cart cleared successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/catalog/categories": {
             "get": {
                 "tags": [
@@ -402,6 +749,685 @@
                                             "type": "object"
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/landing/announcement-bar": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Obtener barra de anuncio activa",
+                "description": "Retorna la barra de anuncio activa más reciente para mostrar en el header de la landing page. Sólo se devuelve un registro: el activo con programación vigente.",
+                "operationId": "9a3ed56fe51aa01ffcc2aa487455bb40",
+                "responses": {
+                    "200": {
+                        "description": "Barra de anuncio activa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Entrega en locker 24/7 ahora disponible."
+                                                },
+                                                "link_url": {
+                                                    "type": "string",
+                                                    "example": "/lockers",
+                                                    "nullable": true
+                                                },
+                                                "link_label": {
+                                                    "type": "string",
+                                                    "example": "Saber más",
+                                                    "nullable": true
+                                                },
+                                                "bg_color": {
+                                                    "type": "string",
+                                                    "example": "#111827",
+                                                    "nullable": true
+                                                },
+                                                "text_color": {
+                                                    "type": "string",
+                                                    "example": "#ffffff",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/hero-slides": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Listar slides del hero banner",
+                "description": "Retorna los slides activos del hero banner, ordenados por sort_order ascendente. Incluye URLs de imagen para desktop y mobile.",
+                "operationId": "a55c16a7db8e494364d2a12ab24a428b",
+                "responses": {
+                    "200": {
+                        "description": "Listado de hero slides activos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Gran valor – 2 x $299"
+                                                    },
+                                                    "subtitle": {
+                                                        "type": "string",
+                                                        "example": "Autos de control remoto escala 1:24"
+                                                    },
+                                                    "cta_text": {
+                                                        "type": "string",
+                                                        "example": "Comprar ahora"
+                                                    },
+                                                    "cta_link": {
+                                                        "type": "string",
+                                                        "example": "/category/juguetes"
+                                                    },
+                                                    "image_url_desktop": {
+                                                        "type": "string",
+                                                        "example": "https://cdn.megasorpresa.com/hero/desktop-1.jpg"
+                                                    },
+                                                    "image_url_mobile": {
+                                                        "type": "string",
+                                                        "example": "https://cdn.megasorpresa.com/hero/mobile-1.jpg",
+                                                        "nullable": true
+                                                    },
+                                                    "alt_text": {
+                                                        "type": "string",
+                                                        "example": "Autos de juguete RC",
+                                                        "nullable": true
+                                                    },
+                                                    "bg_color": {
+                                                        "type": "string",
+                                                        "example": "#0072E3",
+                                                        "nullable": true
+                                                    },
+                                                    "sort_order": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/megamenu": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Obtener estructura completa del megaménú",
+                "description": "Retorna las categorías activas del megaménú con sus grupos de subcategorías, ítems y panel promocional. Útil para renderizar la navegación principal del header.",
+                "operationId": "6662087b99fc8a2eab39247bb4911ee0",
+                "responses": {
+                    "200": {
+                        "description": "Estructura del megaménú",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Juguetes"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "juguetes"
+                                                    },
+                                                    "icon": {
+                                                        "type": "string",
+                                                        "example": "🎠",
+                                                        "nullable": true
+                                                    },
+                                                    "sort_order": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "subcategory_groups": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "title": {
+                                                                    "type": "string",
+                                                                    "example": "Acción y aventura"
+                                                                },
+                                                                "sort_order": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "items": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "id": {
+                                                                                "type": "integer",
+                                                                                "example": 1
+                                                                            },
+                                                                            "label": {
+                                                                                "type": "string",
+                                                                                "example": "Superhéroes"
+                                                                            },
+                                                                            "sort_order": {
+                                                                                "type": "integer",
+                                                                                "example": 1
+                                                                            }
+                                                                        },
+                                                                        "type": "object"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    },
+                                                    "promo_panel": {
+                                                        "properties": {
+                                                            "badge": {
+                                                                "type": "string",
+                                                                "example": "Nuevo"
+                                                            },
+                                                            "title": {
+                                                                "type": "string",
+                                                                "example": "Colección Primavera 2025"
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Descubre los juguetes más populares de la temporada."
+                                                            },
+                                                            "emoji": {
+                                                                "type": "string",
+                                                                "example": "🎠"
+                                                            },
+                                                            "bg_color": {
+                                                                "type": "string",
+                                                                "example": "from-yellow-400 to-orange-400"
+                                                            },
+                                                            "link_text": {
+                                                                "type": "string",
+                                                                "example": "Ver colección"
+                                                            },
+                                                            "link_url": {
+                                                                "type": "string",
+                                                                "example": "/category/juguetes"
+                                                            },
+                                                            "image_url": {
+                                                                "type": "string",
+                                                                "example": "https://cdn.megasorpresa.com/promo/juguetes.jpg",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/category-carousel": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Listar ítems del carrusel de categorías",
+                "description": "Retorna los ítems activos del carrusel de categorías destacadas (sección 'Top categorías'), ordenados por sort_order ascendente.",
+                "operationId": "1b3089d4de239333496217ec02ddb989",
+                "responses": {
+                    "200": {
+                        "description": "Listado de ítems del carrusel",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Pokémon"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "pokemon"
+                                                    },
+                                                    "image_url": {
+                                                        "type": "string",
+                                                        "example": "https://cdn.megasorpresa.com/carousel/pokemon.jpg"
+                                                    },
+                                                    "bg_color": {
+                                                        "type": "string",
+                                                        "example": "bg-green-50"
+                                                    },
+                                                    "sort_order": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "category_id": {
+                                                        "type": "integer",
+                                                        "example": 5,
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/age-groups": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Listar grupos de edad",
+                "description": "Retorna los grupos de edad activos para la sección 'Comprar por edad', ordenados por sort_order ascendente.",
+                "operationId": "b115480089e09566fece234edfa50b13",
+                "responses": {
+                    "200": {
+                        "description": "Listado de grupos de edad",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "label": {
+                                                        "type": "string",
+                                                        "example": "0-18"
+                                                    },
+                                                    "sublabel": {
+                                                        "type": "string",
+                                                        "example": "MESES"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "0-18-meses"
+                                                    },
+                                                    "bg_color": {
+                                                        "type": "string",
+                                                        "example": "#b2f0e8"
+                                                    },
+                                                    "text_color": {
+                                                        "type": "string",
+                                                        "example": "#065f46"
+                                                    },
+                                                    "sort_order": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "category_id_destination": {
+                                                        "type": "integer",
+                                                        "example": 3,
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/footer": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Obtener datos completos del footer",
+                "description": "Retorna toda la información necesaria para renderizar el footer: secciones con sus enlaces, redes sociales y métodos de pago activos.",
+                "operationId": "bb4f364fd054ce5d1f5ccdfd65a514cf",
+                "responses": {
+                    "200": {
+                        "description": "Datos del footer",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "sections": {
+                                                    "description": "Columnas de información del footer con sus enlaces",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "title": {
+                                                                "type": "string",
+                                                                "example": "Información al cliente"
+                                                            },
+                                                            "sort_order": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "links": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer",
+                                                                            "example": 1
+                                                                        },
+                                                                        "label": {
+                                                                            "type": "string",
+                                                                            "example": "Solicitar catálogo"
+                                                                        },
+                                                                        "url": {
+                                                                            "type": "string",
+                                                                            "example": "/catalogue"
+                                                                        },
+                                                                        "icon": {
+                                                                            "type": "string",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "open_in_new_tab": {
+                                                                            "type": "boolean",
+                                                                            "example": false
+                                                                        },
+                                                                        "sort_order": {
+                                                                            "type": "integer",
+                                                                            "example": 1
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "social_links": {
+                                                    "description": "Redes sociales activas",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "platform": {
+                                                                "type": "string",
+                                                                "example": "Facebook"
+                                                            },
+                                                            "url": {
+                                                                "type": "string",
+                                                                "example": "https://facebook.com/megasorpresa"
+                                                            },
+                                                            "icon_class": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "icon_svg": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "initial": {
+                                                                "type": "string",
+                                                                "example": "f"
+                                                            },
+                                                            "sort_order": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "payment_methods": {
+                                                    "description": "Métodos de pago aceptados",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Visa"
+                                                            },
+                                                            "logo_url": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "icon_class": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "sort_order": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/newsletter-categories": {
+            "get": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Listar categorías del boletín",
+                "description": "Retorna las categorías activas disponibles para la suscripción al boletín de correo.",
+                "operationId": "665adb3be385dc3334b28e382e896445",
+                "responses": {
+                    "200": {
+                        "description": "Listado de categorías del boletín",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "label": {
+                                                        "type": "string",
+                                                        "example": "Juguetes"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "juguetes"
+                                                    },
+                                                    "sort_order": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing/newsletter/subscribe": {
+            "post": {
+                "tags": [
+                    "Landing Page"
+                ],
+                "summary": "Suscribirse al boletín de correo",
+                "description": "Suscribe al usuario autenticado a una o más categorías del boletín. Si ya está suscrito a alguna categoría, se omite sin error (idempotente).",
+                "operationId": "3667c7e804379eafb2be00852930186f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_slugs"
+                                ],
+                                "properties": {
+                                    "category_slugs": {
+                                        "description": "Slugs de las categorías a las que se desea suscribir",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "example": "juguetes"
+                                        },
+                                        "minItems": 1,
+                                        "example": [
+                                            "juguetes",
+                                            "gaming"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Suscripción realizada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Suscripción realizada exitosamente."
+                                        },
+                                        "subscribed_categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "juguetes"
+                                            },
+                                            "example": [
+                                                "juguetes",
+                                                "gaming"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedError"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Datos de validación inválidos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
                                 }
                             }
                         }
@@ -1668,6 +2694,105 @@
     },
     "components": {
         "schemas": {
+            "CartItem": {
+                "title": "CartItem",
+                "description": "Item dentro del carrito de compras",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "price_at_addition": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 29.99
+                    },
+                    "subtotal": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 59.98
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Cart": {
+                "title": "Cart",
+                "description": "Carrito de compras",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "session_id": {
+                        "type": "string",
+                        "example": "abc123"
+                    },
+                    "shipping_zip_code": {
+                        "type": "string",
+                        "example": "12345",
+                        "nullable": true
+                    },
+                    "shipping_city": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Ciudad de México"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "scheduled_delivery_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-05-15",
+                        "nullable": true
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CartItem"
+                        }
+                    },
+                    "subtotal": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 59.98
+                    },
+                    "total_items": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
             "Product": {
                 "title": "Product",
                 "description": "Modelo de producto",
@@ -1929,6 +3054,14 @@
         {
             "name": "Cupones",
             "description": "Endpoints para validación de cupones de descuento"
+        },
+        {
+            "name": "Carrito",
+            "description": "Endpoints para gestión del carrito de compras"
+        },
+        {
+            "name": "Landing Page",
+            "description": "Endpoints públicos para los componentes de la landing page"
         }
     ]
 }

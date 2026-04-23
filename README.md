@@ -425,13 +425,15 @@ La documentación de la API está generada automáticamente con **Swagger/OpenAP
 1. **Generar la documentación**:
 
 ```bash
-./vendor/bin/sail artisan l5-swagger:generate
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format json app > storage/api-docs/api-docs.json
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format yaml app > storage/api-docs/api-docs.yaml
+cp storage/api-docs/api-docs.yaml storage/api-docs/api-spec.yaml
 ```
 
 2. **Acceder a Swagger UI**:
 
 ```
-http://localhost/api/documentation
+http://localhost:8080/api/documentation
 ```
 
 ### Actualizar Documentación
@@ -439,7 +441,9 @@ http://localhost/api/documentation
 Cada vez que agregues o modifiques endpoints, actualiza la documentación:
 
 ```bash
-./vendor/bin/sail artisan l5-swagger:generate
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format json app > storage/api-docs/api-docs.json
+APP_SERVICE=app APP_USER=root ./vendor/bin/sail run ./vendor/bin/openapi --format yaml app > storage/api-docs/api-docs.yaml
+cp storage/api-docs/api-docs.yaml storage/api-docs/api-spec.yaml
 ```
 
 > **Nota**: Durante el desarrollo inicial, Swagger puede mostrar warnings sobre `@OA\PathItem()`. Esto es normal hasta que se agreguen más endpoints documentados. La documentación se generará correctamente una vez que haya controladores con anotaciones `@OA\Get`, `@OA\Post`, etc.
