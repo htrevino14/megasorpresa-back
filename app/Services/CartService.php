@@ -13,29 +13,40 @@ use Illuminate\Support\Str;
 class CartService
 {
     /**
-     * Get or create a cart for the current session/user.
+     * Get or create a cart for the current cart token/user.
      */
-    public function getOrCreateCart(string $sessionId, ?int $userId = null): Cart
+    public function getOrCreateCart(?string $cartToken, ?int $userId = null): Cart
     {
+        $cartToken = $cartToken ?: (string) Str::uuid();
+
         // If user is logged in, try to find their cart first
         if ($userId) {
             $cart = Cart::byUser($userId)->first();
 
-            // If found, update session_id to current session
             if ($cart) {
-                $cart->update(['session_id' => $sessionId]);
+                // Keep cart token in sync when provided by the client.
+                if ($cart->session_id !== $cartToken) {
+                    $cart->update(['session_id' => $cartToken]);
+                }
                 return $cart->load(['items.product', 'shippingCity']);
+            }
+
+            // If no user cart exists, try to take ownership of an existing guest cart token.
+            $guestCart = Cart::bySession($cartToken)->first();
+            if ($guestCart) {
+                $guestCart->update(['user_id' => $userId]);
+                return $guestCart->load(['items.product', 'shippingCity']);
             }
         }
 
-        // Otherwise, find cart by session
-        $cart = Cart::bySession($sessionId)->first();
+        // Otherwise, find cart by token
+        $cart = Cart::bySession($cartToken)->first();
 
         // If no cart exists, create one
         if (!$cart) {
             $cart = Cart::create([
                 'user_id' => $userId,
-                'session_id' => $sessionId,
+                'session_id' => $cartToken,
             ]);
         }
 
@@ -146,11 +157,13 @@ class CartService
     /**
      * Merge guest cart with user cart on login.
      */
-    public function mergeGuestCart(string $guestSessionId, int $userId): Cart
+    public function mergeGuestCart(?string $guestCartToken, int $userId): Cart
     {
-        return DB::transaction(function () use ($guestSessionId, $userId) {
+        return DB::transaction(function () use ($guestCartToken, $userId) {
+            $guestCartToken = $guestCartToken ?: (string) Str::uuid();
+
             // Get guest cart
-            $guestCart = Cart::bySession($guestSessionId)->first();
+            $guestCart = Cart::bySession($guestCartToken)->first();
 
             // Get or create user cart
             $userCart = Cart::byUser($userId)->first();
@@ -165,8 +178,8 @@ class CartService
                 // Create new cart for user
                 return Cart::create([
                     'user_id' => $userId,
-                    'session_id' => $guestSessionId,
-                ]);
+                    'session_id' => $guestCartToken,
+                ])->load(['items.product', 'shippingCity']);
             }
 
             // If guest cart exists, merge items into user cart
@@ -193,8 +206,10 @@ class CartService
                 $guestCart->delete();
             }
 
-            // Update session
-            $userCart->update(['session_id' => $guestSessionId]);
+            // Keep token aligned for future guest-to-auth continuity.
+            if ($userCart->session_id !== $guestCartToken) {
+                $userCart->update(['session_id' => $guestCartToken]);
+            }
 
             return $userCart->load(['items.product', 'shippingCity']);
         });

@@ -188,7 +188,7 @@ To complete the implementation:
 
 1. **Run Migrations**: `php artisan migrate`
 2. **Seed Data**: Create seeders for states, cities, categories, order statuses
-3. **Generate API Docs**: `php artisan l5-swagger:generate`
+3. **Generate API Docs**: `./scripts/generate-openapi-safe.sh`
 4. **Run Tests**: Create and run feature tests
 5. **Deploy**: Set up production environment
 
