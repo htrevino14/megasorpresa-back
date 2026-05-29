@@ -28,14 +28,14 @@ class CartService
                 if ($cart->session_id !== $cartToken) {
                     $cart->update(['session_id' => $cartToken]);
                 }
-                return $cart->load(['items.product', 'shippingCity']);
+                return $cart->load(['items.product.primaryImage', 'shippingCity']);
             }
 
             // If no user cart exists, try to take ownership of an existing guest cart token.
             $guestCart = Cart::bySession($cartToken)->first();
             if ($guestCart) {
                 $guestCart->update(['user_id' => $userId]);
-                return $guestCart->load(['items.product', 'shippingCity']);
+                return $guestCart->load(['items.product.primaryImage', 'shippingCity']);
             }
         }
 
@@ -50,7 +50,7 @@ class CartService
             ]);
         }
 
-        return $cart->load(['items.product', 'shippingCity']);
+        return $cart->load(['items.product.primaryImage', 'shippingCity']);
     }
 
     /**
@@ -143,7 +143,7 @@ class CartService
             'scheduled_delivery_date' => $dto->scheduled_delivery_date,
         ]);
 
-        return $cart->fresh(['items.product', 'shippingCity']);
+        return $cart->fresh(['items.product.primaryImage', 'shippingCity']);
     }
 
     /**
@@ -172,14 +172,14 @@ class CartService
                 // If user doesn't have a cart, just assign guest cart to user
                 if ($guestCart) {
                     $guestCart->update(['user_id' => $userId]);
-                    return $guestCart->load(['items.product', 'shippingCity']);
+                    return $guestCart->load(['items.product.primaryImage', 'shippingCity']);
                 }
 
                 // Create new cart for user
                 return Cart::create([
                     'user_id' => $userId,
                     'session_id' => $guestCartToken,
-                ])->load(['items.product', 'shippingCity']);
+                ])->load(['items.product.primaryImage', 'shippingCity']);
             }
 
             // If guest cart exists, merge items into user cart
@@ -211,7 +211,7 @@ class CartService
                 $userCart->update(['session_id' => $guestCartToken]);
             }
 
-            return $userCart->load(['items.product', 'shippingCity']);
+            return $userCart->load(['items.product.primaryImage', 'shippingCity']);
         });
     }
 
@@ -220,7 +220,7 @@ class CartService
      */
     public function getCart(int $cartId): Cart
     {
-        return Cart::with(['items.product', 'shippingCity', 'user'])
+        return Cart::with(['items.product.primaryImage', 'shippingCity', 'user'])
             ->findOrFail($cartId);
     }
 }

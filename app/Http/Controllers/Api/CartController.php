@@ -108,7 +108,7 @@ class CartController extends Controller
 
             $this->cartService->addItem($cart, $cartItemDTO);
 
-            $cart = $cart->fresh(['items.product', 'shippingCity']);
+            $cart = $cart->fresh(['items.product.primaryImage', 'shippingCity']);
 
             return response()->json([
                 'message' => 'Product added to cart successfully',
@@ -185,7 +185,7 @@ class CartController extends Controller
                 $request->input('quantity')
             );
 
-            $cart = $cart->fresh(['items.product', 'shippingCity']);
+            $cart = $cart->fresh(['items.product.primaryImage', 'shippingCity']);
 
             return response()->json([
                 'message' => 'Cart item quantity updated successfully',
@@ -239,7 +239,7 @@ class CartController extends Controller
 
         $this->cartService->removeItem($cart, $productId);
 
-        $cart = $cart->fresh(['items.product', 'shippingCity']);
+        $cart = $cart->fresh(['items.product.primaryImage', 'shippingCity']);
 
         return response()->json([
             'message' => 'Product removed from cart successfully',
@@ -344,7 +344,7 @@ class CartController extends Controller
 
         $this->cartService->clearCart($cart);
 
-        $cart = $cart->fresh(['items.product', 'shippingCity']);
+        $cart = $cart->fresh(['items.product.primaryImage', 'shippingCity']);
 
         return response()->json([
             'message' => 'Cart cleared successfully',
