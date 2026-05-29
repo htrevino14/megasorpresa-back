@@ -16,24 +16,32 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
 
     'allowed_methods' => ['*'],
 
-    // Opción 1: Usar la variable de entorno (Recomendado)
-    //'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
-
-    // Opción 2: Permitir todo (Solo para desarrollo local rápido)
-    'allowed_origins' => ['*'],
+    /*
+     * Cuando supports_credentials = true, el navegador EXIGE que
+     * Access-Control-Allow-Origin sea el origen exacto (no '*').
+     * Listar todos los orígenes de desarrollo válidos.
+     */
+    'allowed_origins' => array_filter(array_map('trim', explode(',', (string) env(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://127.0.0.1:8080'
+    )))),
 
     'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    /*
+     * Exponer el header X-Cart-Token para que el SPA pueda leerlo
+     * desde JavaScript y reenviarlo en peticiones posteriores.
+     */
+    'exposed_headers' => ['X-Cart-Token'],
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // IMPORTANTE si usas autenticación
+    'supports_credentials' => true,
 
 ];
