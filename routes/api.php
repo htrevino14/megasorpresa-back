@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Orders
     Route::get('/orders', [OrderController::class, 'index']);
     Route::post('/orders', [OrderController::class, 'store']);
+    Route::post('/orders/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
 
     // Reviews (creation requires auth)

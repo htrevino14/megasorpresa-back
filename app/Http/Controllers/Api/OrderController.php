@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTOs\CheckoutDTO;
 use App\DTOs\OrderDTO;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCheckoutRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Services\OrderService;
@@ -176,5 +178,52 @@ class OrderController extends Controller
         }
 
         return new OrderResource($order);
+    }
+
+    /**
+     * Procesa el checkout completo del wizard de 5 pasos.
+     *
+     * Recibe el payload anidado validado por StoreCheckoutRequest y delega al
+     * OrderService::processCheckout(), que ejecuta toda la persistencia
+     * (dirección, orden, items y detalle) dentro de una sola transacción.
+     *
+     * Respuesta exitosa (201):
+     *  { "success": true, "message": "...", "data": { id, tracking_number, ... } }
+     *
+     * Respuesta de validación (422):
+     *  { "success": false, "message": "...", "errors": { "campo": ["..."] } }
+     *
+     * Respuesta de error de negocio (422):
+     *  { "success": false, "message": "Stock insuficiente para ...", "errors": {} }
+     */
+    public function checkout(StoreCheckoutRequest $request)
+    {
+        try {
+            $dto = CheckoutDTO::fromRequest($request);
+            $order = $this->orderService->processCheckout(
+                $dto,
+                $request->header('X-Cart-Token'),
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pedido creado exitosamente.',
+                'data' => new OrderResource($order),
+            ], 201);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => new \stdClass(),
+            ], 422);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al procesar tu pedido. Intenta de nuevo.',
+                'errors' => new \stdClass(),
+            ], 500);
+        }
     }
 }
