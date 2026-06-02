@@ -2,13 +2,10 @@
 
 namespace App\Services;
 
-use App\DTOs\CheckoutDTO;
 use App\DTOs\OrderDTO;
-use App\Models\Cart;
-use App\Models\DeliverySlot;
+use App\Http\Requests\StoreCheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderStatus;
-use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Coupon;
 use App\Models\UserAddress;
@@ -158,28 +155,60 @@ class OrderService
      *  - El detalle del envío (teléfono, destinatario, dedicatoria) en `order_details`.
      *  - Limpia el carrito del usuario al confirmar.
      *
-     * @throws \RuntimeException Si el carrito está vacío o no hay stock.
+    /**
+     * Procesa el checkout completo y persiste el pedido de forma atómica.
+     *
+     * Toda la operación se ejecuta dentro de `DB::transaction()` para garantizar
+     * la integridad: si cualquier paso falla, no se guarda nada.
+     *
+     * Flujo:
+     *  1. Encuentra o crea la dirección de envío en `user_addresses`.
+     *  2. Crea el pedido en `orders` (estado inicial "Pendiente", subtotal,
+     *     total y método de pago del request).
+     *  3. Crea los items en `order_items` desde el carrito y descuenta stock.
+     *  4. Crea el detalle en `order_details` (destinatario, teléfono, fecha,
+     *     bloque de horario, dedicatoria y firma).
+     *  5. Vacía el carrito al confirmar.
+     *
+     * @throws \RuntimeException Si el carrito está vacío o no hay stock suficiente.
      */
-    public function processCheckout(CheckoutDTO $dto, ?string $cartToken = null): Order
+    public function processCheckout(StoreCheckoutRequest $request, int $userId): Order
     {
-        return DB::transaction(function () use ($dto, $cartToken) {
-            // 1. Recuperar el carrito del usuario.
-            $cart = $this->cartService->getOrCreateCart($cartToken, $dto->user_id);
+        $data = $request->validated();
+
+        return DB::transaction(function () use ($request, $data, $userId) {
+            // 1. Encontrar o crear la dirección de envío del usuario.
+            $address = UserAddress::firstOrCreate(
+                [
+                    'user_id' => $userId,
+                    'street' => $data['street'],
+                    'ext_number' => $data['ext_number'],
+                    'neighborhood' => $data['neighborhood'],
+                    'zip_code' => $data['zip_code'],
+                    'city_id' => $data['city_id'],
+                    'state_id' => $data['state_id'],
+                ],
+                [
+                    'dwelling_type' => $data['dwelling_type'],
+                    'references' => $data['references'] ?? null,
+                ]
+            );
+
+            // 2. Recuperar el carrito y validar stock antes de crear el pedido.
+            $cart = $this->cartService->getOrCreateCart(
+                $request->header('X-Cart-Token'),
+                $userId,
+            );
 
             if ($cart->items->isEmpty()) {
                 throw new \RuntimeException('El carrito está vacío.');
             }
 
-            // 2. Resolver entidades referenciadas y verificar stock.
-            $deliverySlot = DeliverySlot::findOrFail($dto->delivery_slot_id);
-            $paymentMethod = PaymentMethod::findOrFail($dto->payment_method_id);
-
-            $subtotal = 0.0;
             foreach ($cart->items as $item) {
                 /** @var Product $product */
                 $product = $item->product;
 
-                if (!$product || !$product->is_active) {
+                if (! $product || ! $product->is_active) {
                     throw new \RuntimeException("El producto «{$item->product_id}» ya no está disponible.");
                 }
 
@@ -188,40 +217,25 @@ class OrderService
                         "Stock insuficiente para «{$product->name}». Disponible: {$product->stock_quantity}."
                     );
                 }
-
-                $subtotal += (float) $item->price_at_addition * (int) $item->quantity;
             }
 
-            $shippingCost = (float) ($deliverySlot->additional_cost ?? 0);
-            $totalAmount = $subtotal + $shippingCost;
+            // 3. Crear el pedido principal con estado inicial "Pendiente".
+            $pendingStatus = OrderStatus::firstOrCreate(['name' => 'Pendiente']);
 
-            // 3. Guardar la dirección de envío en user_addresses.
-            $address = UserAddress::create([
-                'user_id' => $dto->user_id,
-                'street' => $dto->recipient['street'],
-                'ext_number' => trim(
-                    $dto->recipient['ext_number']
-                    . ($dto->recipient['interior_number'] ? ' Int. ' . $dto->recipient['interior_number'] : '')
-                ),
-                'neighborhood' => $dto->recipient['neighborhood'],
-                'city_id' => $dto->recipient['city_id'],
-                'zip_code' => $dto->recipient['zip_code'],
-                'references' => $dto->recipient['references'],
-            ]);
-
-            // 4. Crear el pedido principal.
-            $pendingStatus = OrderStatus::firstOrCreate(['name' => 'pending']);
+            $subtotal = (float) $data['subtotal'];
+            $total = (float) $data['total'];
+            $shippingCost = max(0.0, $total - $subtotal);
 
             $order = Order::create([
-                'user_id' => $dto->user_id,
+                'user_id' => $userId,
                 'status_id' => $pendingStatus->id,
-                'total_amount' => $totalAmount,
-                'payment_method' => $paymentMethod->name,
+                'total_amount' => $total,
+                'payment_method' => $data['payment_method'],
                 'shipping_cost' => $shippingCost,
                 'tracking_number' => $this->generateTrackingNumber(),
             ]);
 
-            // 5. Crear los items del pedido y descontar stock.
+            // 4. Crear los items del pedido y descontar stock.
             foreach ($cart->items as $item) {
                 $order->items()->create([
                     'product_id' => $item->product_id,
@@ -232,16 +246,17 @@ class OrderService
                 $item->product->decrement('stock_quantity', $item->quantity);
             }
 
-            // 6. Guardar teléfono, destinatario y dedicatoria en order_details.
+            // 5. Crear el detalle del envío en order_details.
             $order->detail()->create([
-                'recipient_name' => $dto->recipient['recipient_name'],
-                'recipient_phone' => $dto->recipient['phone'] ?? $dto->buyer_phone,
-                'delivery_date' => $dto->delivery_date,
-                'delivery_slot_id' => $dto->delivery_slot_id,
-                'card_message' => $dto->composedCardMessage(),
+                'recipient_name' => $request->input('recipient_name') ?? $order->user?->name ?? 'Destinatario',
+                'recipient_phone' => $data['recipient_phone'],
+                'delivery_date' => $data['delivery_date'],
+                'delivery_slot_id' => $data['delivery_slot_id'],
+                'card_message' => $data['card_message'] ?? null,
+                'signature' => $data['signature'] ?? null,
             ]);
 
-            // 7. Vaciar el carrito al confirmar.
+            // 6. Vaciar el carrito al confirmar.
             $this->cartService->clearCart($cart);
 
             return $order->load([
