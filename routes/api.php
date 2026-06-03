@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -84,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
 
     // User addresses
+    Route::get('/addresses', [UserAddressController::class, 'index']);
     Route::get('/user/addresses', [UserController::class, 'addresses']);
     Route::post('/user/addresses', [UserController::class, 'storeAddress']);
 
