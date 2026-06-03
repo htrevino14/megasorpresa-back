@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\LandingController;
+use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
@@ -39,6 +40,13 @@ Route::prefix('catalog')->group(function () {
 // Public review routes (no auth required for viewing)
 Route::get('/reviews', [ReviewController::class, 'index']);
 Route::get('/reviews/average', [ReviewController::class, 'averageRating']);
+
+// Public location catalog routes (estados, ciudades y franjas de entrega)
+Route::prefix('locations')->group(function () {
+    Route::get('/states', [LocationController::class, 'states']);
+    Route::get('/states/{stateId}/cities', [LocationController::class, 'cities']);
+    Route::get('/cities/{cityId}/delivery-slots', [LocationController::class, 'deliverySlots']);
+});
 
 // Landing page routes (public, no auth required)
 Route::prefix('landing')->group(function () {

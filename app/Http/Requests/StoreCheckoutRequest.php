@@ -7,23 +7,38 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 /**
- * Valida el payload anidado del checkout enviado por el frontend.
+ * Valida estrictamente el payload del checkout enviado por el frontend.
  *
- * Estructura esperada:
- * {
- *   "phone": "+52 81 1234 5678",
- *   "recipient": { "recipient_name", "phone", "street", "ext_number",
- *                  "interior_number", "neighborhood", "zip_code",
- *                  "city_id", "references" },
- *   "schedule":  { "delivery_date", "delivery_slot_id" },
- *   "dedication":{ "message", "signature" },
- *   "payment":   { "payment_method_id", "accepted_terms" }
- * }
+ * El payload se agrupa por la tabla destino:
+ *  - orders:         payment_method, subtotal, total
+ *  - order_details:  delivery_date, delivery_slot_id, recipient_phone,
+ *                    card_message, signature
+ *  - user_addresses: street, ext_number, neighborhood, dwelling_type,
+ *                    zip_code, state_id, city_id, references
+ *
+ * `user_id` y `created_at` los resuelve el backend automáticamente.
  */
 class StoreCheckoutRequest extends FormRequest
 {
+    /**
+     * Tipos de domicilio permitidos para user_addresses.dwelling_type.
+     */
+    private const DWELLING_TYPES = [
+        'casa',
+        'hotel',
+        'restaurante',
+        'escuela',
+        'oficina',
+        'hospital',
+        'teatro',
+        'plaza comercial',
+        'departamento',
+        'otro',
+    ];
+
     public function authorize(): bool
     {
         return $this->user() !== null;
@@ -32,56 +47,58 @@ class StoreCheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // ── Paso 1 ─ Teléfono del comprador ─────────────────────────
-            'phone' => ['required', 'string', 'max:20'],
+            // ── orders ──────────────────────────────────────────────────
+            'payment_method' => ['required', 'string', 'max:255'],
+            'subtotal' => ['required', 'numeric', 'min:0'],
+            'total' => ['required', 'numeric', 'min:0'],
 
-            // ── Paso 2 ─ Destinatario y dirección ───────────────────────
-            'recipient' => ['required', 'array'],
-            'recipient.recipient_name' => ['required', 'string', 'max:255'],
-            'recipient.phone' => ['nullable', 'string', 'max:20'],
-            'recipient.street' => ['required', 'string', 'max:255'],
-            'recipient.ext_number' => ['required', 'string', 'max:20'],
-            'recipient.interior_number' => ['nullable', 'string', 'max:20'],
-            'recipient.neighborhood' => ['required', 'string', 'max:255'],
-            'recipient.zip_code' => ['required', 'string', 'max:10'],
-            'recipient.city_id' => ['required', 'integer', 'exists:cities,id'],
-            'recipient.references' => ['nullable', 'string', 'max:500'],
+            // ── order_details ───────────────────────────────────────────
+            'delivery_date' => ['required', 'date', 'after:today'],
+            'delivery_slot_id' => ['required', 'integer', 'exists:delivery_slots,id'],
+            'recipient_phone' => ['required', 'string', 'max:20'],
+            'card_message' => ['nullable', 'string', 'max:500'],
+            'signature' => ['nullable', 'string', 'max:100'],
 
-            // ── Paso 3 ─ Programación de entrega ────────────────────────
-            'schedule' => ['required', 'array'],
-            'schedule.delivery_date' => ['required', 'date', 'after:today'],
-            'schedule.delivery_slot_id' => ['required', 'integer', 'exists:delivery_slots,id'],
-
-            // ── Paso 4 ─ Dedicatoria (opcional) ─────────────────────────
-            'dedication' => ['nullable', 'array'],
-            'dedication.message' => ['nullable', 'string', 'max:500'],
-            'dedication.signature' => ['nullable', 'string', 'max:100'],
-
-            // ── Paso 5 ─ Pago ───────────────────────────────────────────
-            'payment' => ['required', 'array'],
-            'payment.payment_method_id' => ['required', 'integer', 'exists:payment_methods,id'],
-            'payment.accepted_terms' => ['required', 'accepted'],
+            // ── user_addresses ──────────────────────────────────────────
+            'street' => ['required', 'string', 'max:255'],
+            'ext_number' => ['required', 'string', 'max:20'],
+            'neighborhood' => ['required', 'string', 'max:255'],
+            'dwelling_type' => ['required', 'string', Rule::in(self::DWELLING_TYPES)],
+            'zip_code' => ['required', 'string', 'max:10'],
+            'state_id' => ['required', 'integer', 'exists:states,id'],
+            'city_id' => ['required', 'integer', 'exists:cities,id'],
+            'references' => ['nullable', 'string', 'max:500'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'phone.required' => 'El teléfono del comprador es obligatorio.',
-            'recipient.recipient_name.required' => 'El nombre del destinatario es obligatorio.',
-            'recipient.street.required' => 'La calle es obligatoria.',
-            'recipient.ext_number.required' => 'El número exterior es obligatorio.',
-            'recipient.neighborhood.required' => 'La colonia es obligatoria.',
-            'recipient.zip_code.required' => 'El código postal es obligatorio.',
-            'recipient.city_id.required' => 'La ciudad es obligatoria.',
-            'recipient.city_id.exists' => 'La ciudad seleccionada no es válida.',
-            'schedule.delivery_date.required' => 'La fecha de envío es obligatoria.',
-            'schedule.delivery_date.after' => 'La fecha de envío debe ser posterior a hoy.',
-            'schedule.delivery_slot_id.required' => 'Debes seleccionar un horario de entrega.',
-            'schedule.delivery_slot_id.exists' => 'El horario de entrega seleccionado no es válido.',
-            'payment.payment_method_id.required' => 'Debes seleccionar un método de pago.',
-            'payment.payment_method_id.exists' => 'El método de pago seleccionado no es válido.',
-            'payment.accepted_terms.accepted' => 'Debes aceptar los términos y condiciones.',
+            // orders
+            'payment_method.required' => 'El método de pago es obligatorio.',
+            'subtotal.required' => 'El subtotal es obligatorio.',
+            'subtotal.numeric' => 'El subtotal debe ser un valor numérico.',
+            'total.required' => 'El total es obligatorio.',
+            'total.numeric' => 'El total debe ser un valor numérico.',
+
+            // order_details
+            'delivery_date.required' => 'La fecha de envío es obligatoria.',
+            'delivery_date.after' => 'La fecha de envío debe ser posterior a hoy.',
+            'delivery_slot_id.required' => 'Debes seleccionar un horario de entrega.',
+            'delivery_slot_id.exists' => 'El horario de entrega seleccionado no es válido.',
+            'recipient_phone.required' => 'El teléfono del destinatario es obligatorio.',
+
+            // user_addresses
+            'street.required' => 'La calle es obligatoria.',
+            'ext_number.required' => 'El número exterior es obligatorio.',
+            'neighborhood.required' => 'La colonia es obligatoria.',
+            'dwelling_type.required' => 'El tipo de domicilio es obligatorio.',
+            'dwelling_type.in' => 'El tipo de domicilio seleccionado no es válido.',
+            'zip_code.required' => 'El código postal es obligatorio.',
+            'state_id.required' => 'El estado es obligatorio.',
+            'state_id.exists' => 'El estado seleccionado no es válido.',
+            'city_id.required' => 'La ciudad es obligatoria.',
+            'city_id.exists' => 'La ciudad seleccionada no es válida.',
         ];
     }
 

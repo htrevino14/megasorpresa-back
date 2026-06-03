@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\DTOs\CheckoutDTO;
 use App\DTOs\OrderDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCheckoutRequest;
@@ -181,17 +180,14 @@ class OrderController extends Controller
     }
 
     /**
-     * Procesa el checkout completo del wizard de 5 pasos.
+     * Procesa el checkout y persiste el pedido completo.
      *
-     * Recibe el payload anidado validado por StoreCheckoutRequest y delega al
-     * OrderService::processCheckout(), que ejecuta toda la persistencia
-     * (dirección, orden, items y detalle) dentro de una sola transacción.
+     * Delega en OrderService::processCheckout(), que ejecuta toda la
+     * persistencia (dirección, orden, items y detalle) dentro de una sola
+     * transacción.
      *
      * Respuesta exitosa (201):
-     *  { "success": true, "message": "...", "data": { id, tracking_number, ... } }
-     *
-     * Respuesta de validación (422):
-     *  { "success": false, "message": "...", "errors": { "campo": ["..."] } }
+     *  { "success": true, "message": "...", "data": { "order_id": 1, "order": {...} } }
      *
      * Respuesta de error de negocio (422):
      *  { "success": false, "message": "Stock insuficiente para ...", "errors": {} }
@@ -199,16 +195,18 @@ class OrderController extends Controller
     public function checkout(StoreCheckoutRequest $request)
     {
         try {
-            $dto = CheckoutDTO::fromRequest($request);
             $order = $this->orderService->processCheckout(
-                $dto,
-                $request->header('X-Cart-Token'),
+                $request,
+                (int) $request->user()->id,
             );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pedido creado exitosamente.',
-                'data' => new OrderResource($order),
+                'data' => [
+                    'order_id' => $order->id,
+                    'order' => new OrderResource($order),
+                ],
             ], 201);
         } catch (\RuntimeException $e) {
             return response()->json([

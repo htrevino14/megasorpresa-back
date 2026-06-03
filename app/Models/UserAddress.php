@@ -15,7 +15,9 @@ class UserAddress extends Model
         'street',
         'ext_number',
         'neighborhood',
+        'dwelling_type',
         'city_id',
+        'state_id',
         'zip_code',
         'references',
     ];
@@ -34,6 +36,14 @@ class UserAddress extends Model
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the state for the address.
+     */
+    public function state(): BelongsTo
+    {
+        return $this->belongsTo(State::class);
     }
 
     /**

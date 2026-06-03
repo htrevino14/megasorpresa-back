@@ -17,6 +17,7 @@ class OrderDetail extends Model
         'delivery_date',
         'delivery_slot_id',
         'card_message',
+        'signature',
     ];
 
     protected function casts(): array
