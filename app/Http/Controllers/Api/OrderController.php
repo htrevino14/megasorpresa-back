@@ -42,9 +42,12 @@ class OrderController extends Controller
      *     )
      * )
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $orders = $this->orderService->getUserOrders(auth()->id());
+        $perPage = (int) $request->integer('per_page', 10);
+        $perPage = max(1, min($perPage, 50));
+
+        $orders = $this->orderService->getUserOrders((int) auth()->id(), $perPage);
 
         return OrderResource::collection($orders);
     }
