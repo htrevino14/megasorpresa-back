@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\LandingController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -75,6 +76,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth management
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+
+    // User profile (Mi Perfil)
+    Route::get('/profile', [ProfileController::class, 'show']);
 
     // User profile management
     Route::put('/user/profile', [UserController::class, 'updateProfile']);
