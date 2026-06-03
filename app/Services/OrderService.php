@@ -135,14 +135,24 @@ class OrderService
     }
 
     /**
-     * Get orders for a user.
+     * Lista paginada de pedidos de un usuario, ordenada por fecha descendente.
+     *
+     * Carga las relaciones necesarias para evitar consultas N+1 en el listado
+     * de "Mis pedidos":
+     *  - `status`           para el nombre del estado.
+     *  - `detail`           para el destinatario y la fecha de entrega.
+     *  - `items.product.images` para mostrar la imagen del primer producto.
      */
-    public function getUserOrders(int $userId)
+    public function getUserOrders(int $userId, int $perPage = 10)
     {
         return Order::where('user_id', $userId)
-            ->with(['items.product', 'detail', 'status'])
+            ->with([
+                'status',
+                'detail',
+                'items.product.images',
+            ])
             ->latest()
-            ->paginate(15);
+            ->paginate($perPage);
     }
 
     /**
