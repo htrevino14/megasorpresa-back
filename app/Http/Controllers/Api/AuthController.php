@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
+use App\DTOs\UserDTO;
 use App\Services\CartService;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -15,8 +19,23 @@ class AuthController extends Controller
     private const CART_TOKEN_HEADER = 'X-Cart-Token';
 
     public function __construct(
-        private CartService $cartService
+        private CartService $cartService,
+        private UserService $userService
     ) {}
+
+    public function register(RegisterRequest $request)
+    {
+        $userDTO = UserDTO::fromRequest($request);
+        $user = $this->userService->register($userDTO);
+
+        $tokenName = $request->input('device_name', 'mobile-app');
+        $token = $user->createToken($tokenName)->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'user' => new UserResource($user),
+        ], 201);
+    }
 
     /**
      * @OA\Post(
