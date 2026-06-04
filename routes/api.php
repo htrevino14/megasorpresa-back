@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\LandingController;
@@ -27,10 +28,12 @@ use Illuminate\Support\Facades\Route;
 
 // Authentication routes (no auth required)
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/register', [UserController::class, 'register']);
+Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // Public catalog routes (no auth required)
 Route::prefix('catalog')->group(function () {
+    Route::get('/', [CatalogController::class, 'index']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/products/featured', [ProductController::class, 'featured']);
     Route::get('/products/{id}', [ProductController::class, 'show']);

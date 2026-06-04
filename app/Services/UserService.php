@@ -22,6 +22,7 @@ class UserService
             'email' => $dto->email,
             'first_name' => $dto->first_name,
             'last_name' => $dto->last_name,
+            'gender' => $dto->gender,
             'phone' => $dto->phone,
             'password' => Hash::make($dto->password),
             'loyalty_points' => $dto->loyalty_points,
