@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAddressRequest;
+use App\Http\Requests\UpdateAddressRequest;
 use App\Http\Resources\UserAddressResource;
 use App\Services\UserAddressService;
 use Illuminate\Http\Request;
@@ -52,5 +53,22 @@ class UserAddressController extends Controller
         return (new UserAddressResource($address))
             ->response()
             ->setStatusCode(201);
+    }
+
+    /**
+     * Actualiza una dirección de envío del usuario autenticado.
+     * Devuelve 404 si la dirección no existe o pertenece a otro usuario.
+     */
+    public function update(UpdateAddressRequest $request, int $id): JsonResponse
+    {
+        $address = $this->addressService->updateAddress(
+            addressId: $id,
+            userId: (int) $request->user()->id,
+            data: $request->validated(),
+        );
+
+        return (new UserAddressResource($address))
+            ->response()
+            ->setStatusCode(200);
     }
 }

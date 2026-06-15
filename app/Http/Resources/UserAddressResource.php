@@ -24,6 +24,12 @@ class UserAddressResource extends JsonResource
             'neighborhood' => $this->neighborhood,
             'zip_code' => $this->zip_code,
 
+            // IDs y tipo necesarios para rellenar el formulario de edición
+            'dwelling_type' => $this->dwelling_type,
+            'state_id'      => $this->state_id,
+            'city_id'       => $this->city_id,
+            'references'    => $this->references,
+
             // Ciudad y estado (desde relaciones eager-loaded)
             'city_name' => $this->whenLoaded('city', fn () => $this->city?->name),
             'state_name' => $this->whenLoaded('state', fn () => $this->state?->name),
