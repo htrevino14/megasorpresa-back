@@ -83,9 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User profile (Mi Perfil)
     Route::get('/profile', [ProfileController::class, 'show']);
-
-    // User profile management
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
     // User addresses
     Route::get('/addresses', [UserAddressController::class, 'index']);
