@@ -6,9 +6,36 @@ namespace App\Services;
 
 use App\Models\UserAddress;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class UserAddressService
 {
+    /**
+     * Crea una direccion para el usuario autenticado.
+     *
+     * Guarda el telefono concatenando lada + numero en el campo `phone`.
+     */
+    public function createForUser(int $userId, array $data): UserAddress
+    {
+        return DB::transaction(function () use ($userId, $data) {
+            $address = UserAddress::create([
+                'user_id' => $userId,
+                'recipient_name' => $data['recipient_name'],
+                'phone' => trim((string) $data['phone_code'] . (string) $data['phone']),
+                'street' => $data['street'],
+                'ext_number' => $data['ext_number'],
+                'neighborhood' => $data['neighborhood'],
+                'dwelling_type' => $data['dwelling_type'],
+                'city_id' => $data['city_id'],
+                'state_id' => $data['state_id'],
+                'zip_code' => $data['zip_code'],
+                'references' => $data['references'] ?? null,
+            ]);
+
+            return $address->load(['city', 'state']);
+        });
+    }
+
     /**
      * Lista paginada de direcciones de un usuario, con búsqueda opcional.
      *

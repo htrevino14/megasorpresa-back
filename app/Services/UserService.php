@@ -45,10 +45,14 @@ class UserService
     {
         return UserAddress::create([
             'user_id' => $dto->user_id,
+            'recipient_name' => $dto->recipient_name,
+            'phone' => trim($dto->phone_code . $dto->phone),
             'street' => $dto->street,
             'ext_number' => $dto->ext_number,
             'neighborhood' => $dto->neighborhood,
+            'dwelling_type' => $dto->dwelling_type,
             'city_id' => $dto->city_id,
+            'state_id' => $dto->state_id,
             'zip_code' => $dto->zip_code,
             'references' => $dto->references,
         ]);

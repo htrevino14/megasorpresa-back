@@ -89,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User addresses
     Route::get('/addresses', [UserAddressController::class, 'index']);
+    Route::post('/addresses', [UserAddressController::class, 'store']);
     Route::get('/user/addresses', [UserController::class, 'addresses']);
     Route::post('/user/addresses', [UserController::class, 'storeAddress']);
 
