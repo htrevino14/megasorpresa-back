@@ -91,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/addresses', [UserAddressController::class, 'index']);
     Route::post('/addresses', [UserAddressController::class, 'store']);
     Route::put('/addresses/{id}', [UserAddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [UserAddressController::class, 'destroy']);
     Route::get('/user/addresses', [UserController::class, 'addresses']);
     Route::post('/user/addresses', [UserController::class, 'storeAddress']);
 

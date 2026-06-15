@@ -71,4 +71,19 @@ class UserAddressController extends Controller
             ->response()
             ->setStatusCode(200);
     }
+
+    /**
+     * Elimina una dirección de envío del usuario autenticado.
+     */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $this->addressService->deleteAddress(
+            addressId: $id,
+            userId: (int) $request->user()->id,
+        );
+
+        return response()->json([
+            'message' => 'Dirección eliminada correctamente.',
+        ]);
+    }
 }
