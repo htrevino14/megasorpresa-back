@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreAddressRequest;
 use App\Http\Resources\UserAddressResource;
 use App\Services\UserAddressService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\JsonResponse;
 
 class UserAddressController extends Controller
 {
@@ -35,5 +37,20 @@ class UserAddressController extends Controller
         );
 
         return UserAddressResource::collection($addresses);
+    }
+
+    /**
+     * Crea una nueva direccion de envio para el usuario autenticado.
+     */
+    public function store(StoreAddressRequest $request): JsonResponse
+    {
+        $address = $this->addressService->createForUser(
+            userId: (int) $request->user()->id,
+            data: $request->validated(),
+        );
+
+        return (new UserAddressResource($address))
+            ->response()
+            ->setStatusCode(201);
     }
 }
