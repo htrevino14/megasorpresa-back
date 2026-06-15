@@ -11,6 +11,23 @@ use Illuminate\Support\Facades\DB;
 class UserAddressService
 {
     /**
+     * Elimina una dirección asegurándose de que pertenezca al usuario.
+     *
+     * firstOrFail() hace que Laravel devuelva 404 si no existe o no pertenece
+     * al usuario autenticado.
+     */
+    public function deleteAddress(int $addressId, int $userId): void
+    {
+        DB::transaction(function () use ($addressId, $userId) {
+            $address = UserAddress::where('id', $addressId)
+                ->where('user_id', $userId)
+                ->firstOrFail();
+
+            $address->delete();
+        });
+    }
+
+    /**
      * Crea una direccion para el usuario autenticado.
      *
      * Guarda el telefono concatenando lada + numero en el campo `phone`.
