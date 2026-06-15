@@ -37,6 +37,36 @@ class UserAddressService
     }
 
     /**
+     * Actualiza una dirección existente verificando que pertenezca al usuario.
+     *
+     * Lanza ModelNotFoundException si la dirección no existe o pertenece a otro usuario,
+     * lo que Laravel convierte automáticamente en 404.
+     */
+    public function updateAddress(int $addressId, int $userId, array $data): UserAddress
+    {
+        $address = UserAddress::where('id', $addressId)
+            ->where('user_id', $userId)
+            ->firstOrFail();
+
+        return DB::transaction(function () use ($address, $data) {
+            $address->update([
+                'recipient_name' => $data['recipient_name'],
+                'phone'          => trim((string) $data['phone_code'] . (string) $data['phone']),
+                'street'         => $data['street'],
+                'ext_number'     => $data['ext_number'],
+                'neighborhood'   => $data['neighborhood'],
+                'dwelling_type'  => $data['dwelling_type'],
+                'city_id'        => $data['city_id'],
+                'state_id'       => $data['state_id'],
+                'zip_code'       => $data['zip_code'],
+                'references'     => $data['references'] ?? null,
+            ]);
+
+            return $address->load(['city', 'state']);
+        });
+    }
+
+    /**
      * Lista paginada de direcciones de un usuario, con búsqueda opcional.
      *
      * La búsqueda aplica sobre: recipient_name, phone, street, neighborhood
