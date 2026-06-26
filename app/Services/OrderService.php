@@ -4,10 +4,10 @@ namespace App\Services;
 
 use App\DTOs\OrderDTO;
 use App\Http\Requests\StoreCheckoutRequest;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderStatus;
 use App\Models\Product;
-use App\Models\Coupon;
 use App\Models\UserAddress;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -56,7 +56,7 @@ class OrderService
             // Create order items
             foreach ($dto->items as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                
+
                 // Validate stock
                 if ($product->stock_quantity < $item['quantity']) {
                     throw new \Exception("Insufficient stock for product: {$product->name}");
@@ -105,11 +105,12 @@ class OrderService
      */
     private function calculateShippingCost(?int $deliverySlotId): float
     {
-        if (!$deliverySlotId) {
+        if (! $deliverySlotId) {
             return 0;
         }
 
         $slot = \App\Models\DeliverySlot::find($deliverySlotId);
+
         return $slot ? $slot->additional_cost : 0;
     }
 
@@ -119,19 +120,31 @@ class OrderService
     private function generateTrackingNumber(): string
     {
         do {
-            $trackingNumber = 'MS-' . strtoupper(Str::random(10));
+            $trackingNumber = 'MS-'.strtoupper(Str::random(10));
         } while (Order::where('tracking_number', $trackingNumber)->exists());
 
         return $trackingNumber;
     }
 
     /**
-     * Get order by ID.
+     * Get order by ID with all relations needed for the detail view.
+     *
+     * Eager loads, avoiding N+1 queries:
+     *  - `status`                 estado del pedido (pendiente, entregado, etc.).
+     *  - `detail.deliverySlot`    fecha de entrega, franja horaria, destinatario y dedicatoria.
+     *  - `items.product.images`   productos comprados con sus fotos.
+     *  - `user`                   datos del comprador.
      */
     public function getOrder(int $orderId): Order
     {
-        return Order::with(['items.product', 'detail.deliverySlot', 'status', 'user'])
-            ->findOrFail($orderId);
+        return Order::with([
+            'status',
+            'detail.deliverySlot',
+            'detail.city',
+            'detail.state',
+            'items.product.images',
+            'user',
+        ])->findOrFail($orderId);
     }
 
     /**
@@ -256,7 +269,8 @@ class OrderService
                 $item->product->decrement('stock_quantity', $item->quantity);
             }
 
-            // 5. Crear el detalle del envío en order_details.
+            // 5. Crear el detalle del envío en order_details, incluyendo el
+            //    snapshot de la dirección para preservar la precisión histórica.
             $order->detail()->create([
                 'recipient_name' => $request->input('recipient_name') ?? $order->user?->name ?? 'Destinatario',
                 'recipient_phone' => $data['recipient_phone'],
@@ -264,6 +278,15 @@ class OrderService
                 'delivery_slot_id' => $data['delivery_slot_id'],
                 'card_message' => $data['card_message'] ?? null,
                 'signature' => $data['signature'] ?? null,
+                // Snapshot de la dirección de envío usada en esta compra.
+                'street' => $data['street'],
+                'ext_number' => $data['ext_number'],
+                'neighborhood' => $data['neighborhood'],
+                'dwelling_type' => $data['dwelling_type'],
+                'zip_code' => $data['zip_code'],
+                'city_id' => $data['city_id'],
+                'state_id' => $data['state_id'],
+                'references' => $data['references'] ?? null,
             ]);
 
             // 6. Vaciar el carrito al confirmar.
@@ -272,6 +295,8 @@ class OrderService
             return $order->load([
                 'items.product',
                 'detail.deliverySlot',
+                'detail.city',
+                'detail.state',
                 'status',
             ])->setRelation('shippingAddress', $address);
         });

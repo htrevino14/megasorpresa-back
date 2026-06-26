@@ -12,7 +12,7 @@ class OrderDetailResource extends JsonResource
         return [
             'recipient_name' => $this->recipient_name,
             'recipient_phone' => $this->recipient_phone,
-            'delivery_date' => $this->delivery_date->format('Y-m-d'),
+            'delivery_date' => $this->delivery_date?->format('Y-m-d'),
             'delivery_slot' => $this->whenLoaded('deliverySlot', function () {
                 return [
                     'id' => $this->deliverySlot->id,
@@ -22,6 +22,18 @@ class OrderDetailResource extends JsonResource
                 ];
             }),
             'card_message' => $this->card_message,
+            'signature' => $this->signature,
+            'address' => [
+                'street' => $this->street,
+                'ext_number' => $this->ext_number,
+                'neighborhood' => $this->neighborhood,
+                'dwelling_type' => $this->dwelling_type,
+                'zip_code' => $this->zip_code,
+                'references' => $this->references,
+                'city' => $this->whenLoaded('city', fn () => $this->city?->name),
+                'state' => $this->whenLoaded('state', fn () => $this->state?->name),
+                'full_address' => $this->full_address,
+            ],
         ];
     }
 }
