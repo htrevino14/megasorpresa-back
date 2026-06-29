@@ -7,10 +7,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private UserService $userService
+    ) {}
+
     /**
      * Retorna la información del usuario autenticado para la vista "Mi Perfil".
      */
@@ -24,20 +29,11 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request): UserResource
     {
-        $validated = $request->validated();
-        $user = $request->user();
+        $user = $this->userService->updateProfile(
+            $request->user(),
+            $request->validated(),
+        );
 
-        $firstName = trim((string) $validated['first_name']);
-        $lastName = trim((string) $validated['last_name']);
-
-        $user->update([
-            'name' => trim("{$firstName} {$lastName}"),
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'gender' => (string) $validated['gender'],
-            'phone' => trim((string) $validated['phone_code']) . trim((string) $validated['phone']),
-        ]);
-
-        return new UserResource($user->fresh());
+        return new UserResource($user);
     }
 }

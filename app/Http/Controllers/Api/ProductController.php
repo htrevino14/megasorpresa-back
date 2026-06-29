@@ -152,8 +152,7 @@ class ProductController extends Controller
      */
     public function show(int $id)
     {
-        $product = \App\Models\Product::with(['images', 'categories', 'reviews'])
-            ->findOrFail($id);
+        $product = $this->catalogService->getProduct($id);
 
         return new ProductResource($product);
     }
