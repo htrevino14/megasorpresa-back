@@ -123,6 +123,19 @@ las consultas a datos no deben vivir en el controlador**.
    `images`, `categories`, `reviews`) y el controlador delega en él. La respuesta
    JSON es idéntica.
 
+3. **`LandingController` — 8 métodos con consultas Eloquent directas.**
+   `announcementBar()`, `heroSlides()`, `megamenu()`, `categoryCarousel()`,
+   `ageGroups()`, `footer()` y `newsletterCategories()` consultaban directamente
+   los modelos (`AnnouncementBar::active()`, `HeroSlide::active()`,
+   `MegamenuCategory::active()`, etc.) desde el controlador; sólo
+   `subscribeNewsletter()` delegaba en `NewsletterService`.
+   **Corrección:** se creó `App\Services\LandingService` (siguiendo el patrón de
+   `LocationService`) que encapsula todas las lecturas, incluida la carga
+   condicional de `links` activos del footer. El controlador ahora inyecta y
+   delega en `LandingService`, se eliminaron los imports de modelos y se añadió
+   `declare(strict_types=1)`. Las respuestas JSON son idénticas (validado con
+   `tests/Feature/Api/LandingTest.php`).
+
 ### Hallazgo menor (no modificado, registrado para seguimiento)
 
 - **`ReviewController::index()` / `averageRating()`** validan `product_id`
@@ -159,8 +172,11 @@ facades dentro de la capa de negocio.
 | `app/Http/Controllers/Api/ProfileController.php` | Inyecta `UserService` y delega; sin lógica de negocio. |
 | `app/Services/CatalogService.php` | Nuevo método `getProduct()`. |
 | `app/Http/Controllers/Api/ProductController.php` | `show()` delega en `CatalogService::getProduct()`. |
+| `app/Services/LandingService.php` | Nuevo servicio que encapsula las lecturas de la landing. |
+| `app/Http/Controllers/Api/LandingController.php` | Inyecta `LandingService` y delega; sin consultas Eloquent directas. |
 | `tests/Feature/Api/ProfileTest.php` | Tests del endpoint de perfil. |
 | `tests/Feature/Api/ProductTest.php` | Tests del detalle de producto. |
+| `tests/Feature/Api/LandingTest.php` | Tests de los endpoints de la landing. |
 | `SECURITY_AUDIT.md` | Este informe. |
 
 ### Acción pendiente fuera de banda
