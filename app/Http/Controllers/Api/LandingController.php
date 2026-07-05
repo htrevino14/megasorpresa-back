@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -13,15 +15,7 @@ use App\Http\Resources\MegamenuCategoryResource;
 use App\Http\Resources\NewsletterCategoryResource;
 use App\Http\Resources\PaymentMethodResource;
 use App\Http\Resources\SocialLinkResource;
-use App\Models\AgeGroup;
-use App\Models\AnnouncementBar;
-use App\Models\CategoryCarouselItem;
-use App\Models\FooterSection;
-use App\Models\HeroSlide;
-use App\Models\MegamenuCategory;
-use App\Models\NewsletterCategory;
-use App\Models\PaymentMethod;
-use App\Models\SocialLink;
+use App\Services\LandingService;
 use App\Services\NewsletterService;
 use Illuminate\Http\JsonResponse;
 use OpenApi\Annotations as OA;
@@ -29,6 +23,7 @@ use OpenApi\Annotations as OA;
 class LandingController extends Controller
 {
     public function __construct(
+        private LandingService $landingService,
         private NewsletterService $newsletterService
     ) {}
 
@@ -62,7 +57,7 @@ class LandingController extends Controller
      */
     public function announcementBar(): JsonResponse
     {
-        $bar = AnnouncementBar::active()->latest()->first();
+        $bar = $this->landingService->getActiveAnnouncementBar();
 
         return response()->json([
             'data' => $bar ? new AnnouncementBarResource($bar) : null,
@@ -107,7 +102,7 @@ class LandingController extends Controller
      */
     public function heroSlides(): JsonResponse
     {
-        $slides = HeroSlide::active()->orderBy('sort_order')->get();
+        $slides = $this->landingService->getHeroSlides();
 
         return response()->json([
             'data' => HeroSlideResource::collection($slides),
@@ -184,10 +179,7 @@ class LandingController extends Controller
      */
     public function megamenu(): JsonResponse
     {
-        $categories = MegamenuCategory::active()
-            ->with(['subcategoryGroups.items', 'promoPanel'])
-            ->orderBy('sort_order')
-            ->get();
+        $categories = $this->landingService->getMegamenu();
 
         return response()->json([
             'data' => MegamenuCategoryResource::collection($categories),
@@ -229,7 +221,7 @@ class LandingController extends Controller
      */
     public function categoryCarousel(): JsonResponse
     {
-        $items = CategoryCarouselItem::active()->orderBy('sort_order')->get();
+        $items = $this->landingService->getCategoryCarousel();
 
         return response()->json([
             'data' => CategoryCarouselItemResource::collection($items),
@@ -272,7 +264,7 @@ class LandingController extends Controller
      */
     public function ageGroups(): JsonResponse
     {
-        $groups = AgeGroup::active()->orderBy('sort_order')->get();
+        $groups = $this->landingService->getAgeGroups();
 
         return response()->json([
             'data' => AgeGroupResource::collection($groups),
@@ -362,19 +354,13 @@ class LandingController extends Controller
      */
     public function footer(): JsonResponse
     {
-        $sections = FooterSection::active()
-            ->with(['links' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
-            ->orderBy('sort_order')
-            ->get();
-
-        $socialLinks = SocialLink::active()->orderBy('sort_order')->get();
-        $paymentMethods = PaymentMethod::active()->orderBy('sort_order')->get();
+        $footer = $this->landingService->getFooter();
 
         return response()->json([
             'data' => [
-                'sections' => FooterSectionResource::collection($sections),
-                'social_links' => SocialLinkResource::collection($socialLinks),
-                'payment_methods' => PaymentMethodResource::collection($paymentMethods),
+                'sections' => FooterSectionResource::collection($footer['sections']),
+                'social_links' => SocialLinkResource::collection($footer['social_links']),
+                'payment_methods' => PaymentMethodResource::collection($footer['payment_methods']),
             ],
         ]);
     }
@@ -411,7 +397,7 @@ class LandingController extends Controller
      */
     public function newsletterCategories(): JsonResponse
     {
-        $categories = NewsletterCategory::active()->orderBy('sort_order')->get();
+        $categories = $this->landingService->getNewsletterCategories();
 
         return response()->json([
             'data' => NewsletterCategoryResource::collection($categories),

@@ -60,6 +60,15 @@ class CatalogService
     }
 
     /**
+     * Get a single product with its images, categories and reviews.
+     */
+    public function getProduct(int $productId): Product
+    {
+        return Product::with(['images', 'categories', 'reviews'])
+            ->findOrFail($productId);
+    }
+
+    /**
      * Get all categories with their products count.
      */
     public function getCategories(): Collection

@@ -31,10 +31,23 @@ class UserService
 
     /**
      * Update user profile.
+     *
+     * Builds the full name from first/last name and combines the phone code
+     * with the phone number, keeping this business logic out of the controller.
      */
     public function updateProfile(User $user, array $data): User
     {
-        $user->update($data);
+        $firstName = trim((string) $data['first_name']);
+        $lastName = trim((string) $data['last_name']);
+
+        $user->update([
+            'name' => trim("{$firstName} {$lastName}"),
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'gender' => (string) $data['gender'],
+            'phone' => trim((string) $data['phone_code']).trim((string) $data['phone']),
+        ]);
+
         return $user->fresh();
     }
 
