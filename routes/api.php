@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminAuthController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CatalogController;
@@ -74,7 +75,6 @@ Route::prefix('cart')->group(function () {
     Route::delete('/clear', [CartController::class, 'clear']);
 });
 
-
 // Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {
     // Auth management
@@ -111,4 +111,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Newsletter subscription (requires auth)
     Route::post('/landing/newsletter/subscribe', [LandingController::class, 'subscribeNewsletter']);
+});
+
+// CMS (admin panel) routes
+Route::prefix('cms')->group(function () {
+    // Public admin authentication
+    Route::post('/login', [AdminAuthController::class, 'login']);
+
+    // Protected admin routes (require an authenticated, active admin token)
+    Route::middleware('auth:admin')->group(function () {
+        Route::post('/logout', [AdminAuthController::class, 'logout']);
+        Route::get('/dashboard', [AdminAuthController::class, 'dashboard']);
+    });
 });
