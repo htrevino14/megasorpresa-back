@@ -67,6 +67,9 @@ services:
 networks:
   megasorpresa:
     driver: bridge
+    # Fixed name so other compose projects (e.g. megasorpresa-cms) can attach
+    # to this network as external and share the mysql service.
+    name: megasorpresa
 
 volumes:
   mysql-data:
