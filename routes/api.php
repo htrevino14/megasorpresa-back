@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\UserController;
@@ -46,6 +47,9 @@ Route::prefix('catalog')->group(function () {
 // Public review routes (no auth required for viewing)
 Route::get('/reviews', [ReviewController::class, 'index']);
 Route::get('/reviews/average', [ReviewController::class, 'averageRating']);
+
+// Public region catalog route (multi-mercado / i18n)
+Route::get('/regions', [RegionController::class, 'index']);
 
 // Public location catalog routes (estados, ciudades y franjas de entrega)
 Route::prefix('locations')->group(function () {
