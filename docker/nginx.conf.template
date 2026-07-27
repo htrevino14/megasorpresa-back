@@ -22,12 +22,22 @@ http {
     client_max_body_size 50M;
 
     server {
-        listen 80;
+        # Cloud Run enruta el tráfico a $PORT (8080 por defecto). El entrypoint
+        # renderiza ${PORT} con envsubst antes de arrancar Nginx.
+        listen ${PORT};
         server_name _;
         root /var/www/html/public;
         index index.php index.html;
 
         charset utf-8;
+
+        # Health check ligero para los probes de Cloud Run. No toca PHP ni la BD,
+        # por lo que responde 200 aunque la base de datos aún no esté disponible.
+        location = /healthz {
+            access_log off;
+            add_header Content-Type text/plain;
+            return 200 'ok';
+        }
 
         location / {
             try_files $uri $uri/ /index.php?$query_string;
