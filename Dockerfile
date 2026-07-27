@@ -1,30 +1,64 @@
-FROM php:8.2-fpm-alpine
+# syntax=docker/dockerfile:1
 
-# 1. Dependencias del sistema (usando apk para Alpine)
+# ==============================================================================
+# MegaSorpresa Backend — Laravel 12 (API) para Cloud Run
+#
+#   Stage 1 (vendor)  -> dependencias PHP de producción con Composer (cacheable)
+#   Stage 2 (runtime) -> PHP-FPM + Nginx + Supervisor, escuchando en $PORT (8080)
+#
+# Stateless / cloud-native: sin MySQL ni Redis embebidos. Conexiones a Cloud SQL
+# y Memorystore se resuelven por variables de entorno. Migraciones/seeders NO se
+# ejecutan por instancia (ver entrypoint.sh).
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Stage 1: Dependencias PHP (Composer, sin dev)
+# ------------------------------------------------------------------------------
+FROM composer:2 AS vendor
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+
+# Scripts y autoloader se ejecutan en runtime, cuando ya está todo el código.
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --no-scripts \
+    --no-autoloader \
+    --ignore-platform-reqs
+
+# ------------------------------------------------------------------------------
+# Stage 2: Runtime (PHP-FPM + Nginx + Supervisor)
+# ------------------------------------------------------------------------------
+FROM php:8.2-fpm-alpine AS runtime
+
+# 1. Dependencias de sistema en runtime.
+#    - gettext: provee `envsubst` para renderizar el puerto de Nginx desde $PORT.
+#    - libs *sin* -dev: solo las bibliotecas compartidas que requieren gd/zip/mbstring.
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    git \
-    curl \
-    zip \
-    unzip \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    libzip-dev \
-    oniguruma-dev \
-    bash
+    gettext \
+    bash \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    libzip \
+    oniguruma
 
-# 2. Herramientas de compilación para PECL (Se instalan temporalmente para ahorrar espacio)
-# $PHPIZE_DEPS incluye autoconf, dpkg, file, g++, gcc, libc-dev, make, pkgconf, etc.
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apk del .build-deps
-
-# 3. Instalación de extensiones de PHP
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
+# 2. Extensiones de PHP + PECL redis. Las herramientas de compilación se instalan
+#    como paquete virtual temporal y se eliminan para mantener la imagen ligera.
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        libpng-dev \
+        libjpeg-turbo-dev \
+        freetype-dev \
+        libzip-dev \
+        oniguruma-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
         pdo \
         pdo_mysql \
         mbstring \
@@ -32,37 +66,45 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         pcntl \
         bcmath \
         gd \
-        zip
+        zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && apk del .build-deps
 
-# 4. Composer
+# 3. Binario de Composer (para el dump-autoload optimizado).
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# 5. Instalación de dependencias de Laravel (Optimizado para caché)
+# 4. Vendor desde el Stage 1 (aprovecha caché mientras no cambien los lock files).
 COPY composer.json composer.lock ./
-RUN composer install \
-    --prefer-dist \
-    --no-interaction \
-    --no-scripts \
-    --no-autoloader
+COPY --from=vendor /app/vendor ./vendor
 
-# 6. Código fuente y Autoloader
+# 5. Código de la aplicación.
 COPY . .
-RUN composer dump-autoload --optimize
 
-# 7. Permisos y Logs
-RUN mkdir -p /var/log/supervisor \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+# 6. Autoloader optimizado de producción (+ package discovery vía scripts).
+RUN composer dump-autoload --optimize --no-dev
 
-# 8. Archivos de configuración
-COPY docker/nginx.conf /etc/nginx/nginx.conf
+# 7. Directorios escribibles y permisos.
+RUN mkdir -p \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+        bootstrap/cache \
+        /var/log/supervisor \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# 8. Configuración del contenedor.
+COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 80
+# Cloud Run inyecta $PORT (8080 por defecto); lo dejamos explícito.
+ENV PORT=8080
+EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
